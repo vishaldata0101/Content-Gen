@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
-import openai
-import config  # Import the configuration file
+import openai 
+import os
+
+API_KEY = os.environ.get("API_KEY")
+
 
 app = Flask(__name__)
 
@@ -40,7 +43,7 @@ TONES = [
 
 
 def create_marketing_content(category, brand, objective, offer, medium, tone, specific_input, ab_testing):
-    openai.api_key = config.OPENAI_API_KEY
+    openai.api_key = config.API_KEY
 
     char_limits = {
         "email": 2000,
