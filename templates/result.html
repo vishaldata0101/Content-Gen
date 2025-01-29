@@ -35,9 +35,10 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             max-width: 100%;
-            overflow-wrap: break-word; /* Ensures long words wrap */
-            word-break: break-word;   /* Breaks words to prevent overflow */
-            overflow: auto;           /* Adds scrollbars if needed */
+            word-wrap: break-word;  /* Ensures long words wrap */
+            white-space: pre-wrap;  /* Preserves formatting while wrapping */
+            word-break: break-word; /* Breaks long words if necessary */
+            overflow-x: hidden;     /* Prevents horizontal scrolling */
         }
         a {
             display: block;
