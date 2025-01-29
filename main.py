@@ -43,7 +43,7 @@ TONES = [
 
 
 def create_marketing_content(category, brand, objective, offer, medium, tone, specific_input, ab_testing):
-    openai.api_key = config.API_KEY
+    openai.api_key = API_KEY
 
     char_limits = {
         "email": 2000,
