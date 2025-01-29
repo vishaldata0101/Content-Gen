@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Content Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        select, input[type="text"], button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: left;
+            background: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .result h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Marketing Content Generator</h1>
+        <form method="POST">
+            <label for="category">Category:</label>
+            <select id="category" name="category">
+                {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="brand">Brand:</label>
+            <input type="text" id="brand" name="brand">
+
+            <label for="objective">Objective:</label>
+            <input type="text" id="objective" name="objective">
+
+            <label for="offer">Offer:</label>
+            <input type="text" id="offer" name="offer">
+
+            <label for="medium">Medium:</label>
+            <select id="medium" name="medium">
+                {% for medium in mediums %}
+                    <option value="{{ medium }}">{{ medium }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="tone">Tone:</label>
+            <select id="tone" name="tone">
+                {% for tone in tones %}
+                    <option value="{{ tone }}">{{ tone }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="specific_input">Any specific input:</label>
+            <input type="text" id="specific_input" name="specific_input">
+
+            <label for="ab_testing">A/B Testing:</label>
+            <input type="checkbox" id="ab_testing" name="ab_testing">
+
+            <button type="submit">Generate Content</button>
+        </form>
+
+        {% if content %}
+            <div class="result">
+                <h2>Your Inputs:</h2>
+                <p><strong>Category:</strong> {{ request.form.get('category', 'None') }}</p>
+                <p><strong>Brand:</strong> {{ request.form.get('brand', 'None') }}</p>
+                <p><strong>Objective:</strong> {{ request.form.get('objective', 'None') }}</p>
+                <p><strong>Offer:</strong> {{ request.form.get('offer', 'None') }}</p>
+                <p><strong>Medium:</strong> {{ request.form.get('medium', 'None') }}</p>
+                <p><strong>Tone:</strong> {{ request.form.get('tone', 'None') }}</p>
+                <p><strong>Specific input :</strong> {{ request.form.get('specific_input', 'None') }}</p>
+
+                <h2>Generated Content:</h2>
+                <pre>{{ content }}</pre>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

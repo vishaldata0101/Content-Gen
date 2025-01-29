@@ -1,0 +1,13 @@
+runtime: python312  # Specify Python 3.12 runtime
+
+entrypoint: gunicorn -b :$PORT app:app  # Gunicorn serves the app; "app:app" assumes the app object is in app.py
+
+handlers:
+- url: /static
+  static_dir: static  # Serve static files (optional, remove if no static/ folder exists)
+
+- url: /.*
+  script: auto  # Route all other requests to your Flask app
+
+env_variables:
+  FLASK_ENV: "production"  # Set Flask environment to production
