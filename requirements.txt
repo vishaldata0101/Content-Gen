@@ -1,3 +1,0 @@
-gunicorn
-flask
-openai==0.28
