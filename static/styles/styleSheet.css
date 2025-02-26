@@ -15,12 +15,7 @@ body {margin:0px; padding:0px; font-family:"Montserrat", serif; font-optical-siz
 .bodyTextCont {display:block; clear:both;}
 .bodyTextCont b {display:block; clear:both; padding:20px 0px 15px 0px;}
 .bodyTextCont p {display:block; clear:both; margin:0px; padding:0px 0px 10px 0px;}
-.errormessage {
-    color: red;
-    font-size: 14px;
-    margin-top: 5px;
-    display: none;
-}
+
 
 
 .tabsButtons {margin:0px; padding:10px; list-style:none; position:relative; font-weight:700; border-bottom:3px solid #108899;}
@@ -35,16 +30,6 @@ body {margin:0px; padding:0px; font-family:"Montserrat", serif; font-optical-siz
     display: block;
 }
 
-.error {
-    border: 2px solid red;
-}
-
-.error-message {
-    color: red;
-    font-size: 12px;
-    display: none;
-    margin-top: 1px; /* Places the error below input */
-}
 
 .hidden-tab {
     display: none;
@@ -55,10 +40,6 @@ body {margin:0px; padding:0px; font-family:"Montserrat", serif; font-optical-siz
 .error {
     border: 2px solid red;
     background-color: #ffe6e6;
-}
-
-.error {
-    border: 2px solid red;
 }
 
 .error-message {
@@ -161,25 +142,42 @@ body {margin:0px; padding:0px; font-family:"Montserrat", serif; font-optical-siz
     display: none; /* Initially hidden */
 }
 
-/* Loader Styling */
-.loader {
+
+/* Loader container */
+#loader {
+    display: none;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 24px;
-    color: #000; /* Dark black color */
-    z-index: 1000; /* Ensure it's above the overlay */
+    text-align: center;
+    font-size: 16px;
+    color: #fff;
+}
+#loader p {
+    color: #108899; 
+    font-size: 16px;
+    margin-top: 10px;
+    font-weight: bold;
+    font-style: italic;
 }
 
-.loader p {
-    margin: 0;
-    padding: 10px;
-    background-color: rgba(255, 255, 255, 0.9); /* Slight white background */
-    border-radius: 5px;
+/* Rotating ring */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3; /* Light gray */
+    border-top: 5px solid #108899; /* Blue rotating part */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto; /* Centering */
 }
 
+/* Loader animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 .captcha-container {
     text-align: center;
