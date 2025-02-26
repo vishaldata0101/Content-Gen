@@ -137,20 +137,33 @@ def get_content():
 
 app.secret_key = os.urandom(24)  # Generates a random secret key
 
+# Function to load the font
+def get_font():
+    font_path = os.path.join(os.path.dirname(__file__), "fonts", "DejaVuSans-Bold.ttf")  # Path to bundled font
+    try:
+        return ImageFont.truetype(font_path, 36)  # Adjust size as needed
+    except Exception as e:
+        print(f"Font loading error: {e}")
+        return ImageFont.load_default()
+
+# Function to generate a CAPTCHA text
 def generate_captcha_text(length=5):
     """Generate a random CAPTCHA text."""
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
+
+# Function to create a CAPTCHA image
 def create_captcha_image(text):
     """Create a CAPTCHA image from the given text."""
     width, height = 150, 60
     image = Image.new("RGB", (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
-
-    try:
-        font = ImageFont.truetype("arial.ttf", 36)  # Ensure arial.ttf exists or change font
-    except:
-        font = ImageFont.load_default()
+    font = get_font()
+    
+    # try:
+    #     font = ImageFont.truetype("arial.ttf", 36)  # Ensure arial.ttf exists or change font
+    # except:
+    #     font = ImageFont.load_default()
 
     draw.text((20, 10), text, fill=(0, 0, 0), font=font)
 
@@ -159,6 +172,7 @@ def create_captcha_image(text):
     image.save(img_io, format="PNG")
     img_io.seek(0)
     return img_io
+
 
 @app.route("/captcha", methods=["GET"])
 def get_captcha():
@@ -170,6 +184,8 @@ def get_captcha():
     img_io = create_captcha_image(captcha_text)
     return send_file(img_io, mimetype="image/png")
 
+
+# Function to validate the CAPTCHA
 @app.route("/validate", methods=["POST"])
 def validate_captcha():
     """Validate user input against the stored CAPTCHA."""
@@ -187,7 +203,7 @@ def get_captchaImprove():
     """Generate and return a CAPTCHA image."""
     captcha_text = generate_captcha_text()
     print("captcha_text",captcha_text)
-    session["captchaImprove"] = captcha_text  # Store CAPTCHA in session
+    session["captchaImprove"] = captcha_text  # Store fCAPTCHA in session
 
     img_io = create_captcha_image(captcha_text)
     return send_file(img_io, mimetype="image/png")
@@ -207,3 +223,5 @@ def validate_captchaImprove():
 if __name__ == "__main__":
     # app.run(host="0.0.0.0", port=8080, debug=True)
     app.run(debug=True)
+    
+
