@@ -152,26 +152,36 @@ def generate_captcha_text(length=5):
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
-# Function to create a CAPTCHA image
+
 def create_captcha_image(text):
     """Create a CAPTCHA image from the given text."""
-    width, height = 150, 60
+    font = get_font()
+    dummy_image = Image.new("RGB", (1, 1))  # Dummy image to calculate text size
+    draw = ImageDraw.Draw(dummy_image)
+    
+    # Get text bounding box
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    # Add padding to avoid cutting
+    width = text_width + 40  # Extra space to prevent cutoff
+    height = max(60, text_height + 20)  # Ensure minimum height
+
     image = Image.new("RGB", (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
-    font = get_font()
-    
-    # try:
-    #     font = ImageFont.truetype("arial.ttf", 36)  # Ensure arial.ttf exists or change font
-    # except:
-    #     font = ImageFont.load_default()
 
-    draw.text((20, 10), text, fill=(0, 0, 0), font=font)
+    # Center the text
+    x = (width - text_width) // 2
+    y = (height - text_height) // 2
+    draw.text((x, y), text, fill=(0, 0, 0), font=font)
 
     # Save image to a byte stream
     img_io = io.BytesIO()
     image.save(img_io, format="PNG")
     img_io.seek(0)
     return img_io
+
 
 
 @app.route("/captcha", methods=["GET"])
