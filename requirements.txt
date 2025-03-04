@@ -5,3 +5,4 @@ python-dotenv
 pillow
 flask_session
 flask_cors
+redis
