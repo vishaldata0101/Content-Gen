@@ -200,7 +200,7 @@ def create_captcha_image(text):
         y1 = random.randint(0, height)
         x2 = random.randint(0, width)
         y2 = random.randint(0, height)
-        draw.line([(x1, y1), (x2, y2)], fill=(0, 0, 255), width=1)
+        draw.line([(x1, y1), (x2, y2)], fill=(128, 128, 128), width=2)
 
 
     # Save image to a byte stream
