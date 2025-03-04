@@ -155,27 +155,34 @@
                 </div>
 
                 <div class="parentDiv CTA">
-                    <div class="ackText">
+                    <div class="ackText" style="margin-bottom: 20px;">
                         <b>Need content for AB testing</b>
                         <input type="checkbox" name="ab_testing" value="true" id="ackText_check_1" />
                         <label for="ackText_check_1"></label>
                     </div>
-
-                    <div class="captchaContainer chidDivs_2" style="display: flex; align-items: center; gap: 10px;">
-                        <label for="captchaInput">Enter CAPTCHA:</label>
-                        <input type="text" id="captchaInput" required>
-                        <img id="captchaImage" src="/captcha" alt="CAPTCHA Image" style="height: 40px;">
-                        <input type="hidden" id="captchaAnswer">
-                        <p class="formError_text" id="captchaError" style="color: red; margin: 0;"></p>
-                    </div>                    
+                
+                    <div class="captchaContainer chidDivs_2" style="margin-bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                        <div style="display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                            <input type="text" id="captchaInput" required style="height: 20px; width: 100px; font-size: 18px; padding: 5px;">
+                            <img id="captchaImage" src="/captcha" alt="CAPTCHA Image" style="height: 40px;">
+                            <svg id="refreshCaptcha" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 4v6h-6"></path>
+                                <path d="M1 20v-6h6"></path>
+                                <path d="M3.51 9a9 9 0 0 1 14.47-4.21L23 10"></path>
+                                <path d="M20.49 15a9 9 0 0 1-14.47 4.21L1 14"></path>
+                            </svg>
+                        </div>
+                        <p class="formError_text" id="captchaError" style="color: red; margin-top: 5px; width: 100%; text-align: center;">Invalid CAPTCHA</p>
+                    </div>
                     
-                    <div class="divCTA">
+                    
+                    <div class="divCTA" style="margin-bottom: 20px;">
                         <div class="inptCont">
                             <input type="submit" class="commonInptBTN" id="createNewForm" value="Create" />
                         </div>
                     </div>
                 </div>
-
+                
             </form> <!-- ✅ Form closes here -->
             <div id="errorMessages"></div>
 
@@ -248,23 +255,28 @@
 				</div>
 			</div>
 
-			<div class="parentDiv CTA">
-				<div class="ackText">
+			<div class="parentDiv CTA" >
+				<div class="ackText" style="margin-bottom: 20px;" >
 					<b>Need content for AB testing</b>
-					<input type="checkbox" name="ab_testing" value="true" id="ackText_check_2" />
+                    <input type="checkbox" name="ab_testing" value="true" id="ackText_check_2" />
 					<label for="ackText_check_2"></label>
-				</div>
+                </div>
 
-                
-                <div class="captchaContainer chidDivs_2" style="display: flex; align-items: center; gap: 10px;">
-                    <label for="captchaInputImprove">Enter CAPTCHA:</label>
-                    <input type="text" id="captchaInputImprove" required>
-                    <img id="captchaImage" src="/captchaImprove" alt="CAPTCHA Image" style="height: 40px;">
-                    <input type="hidden" id="captchaAnswerImprove">
-                    <p class="formError_text" id="captchaImproveError" style="color: red; margin: 0;"></p>
-                </div> 
+                <div class="captchaContainer chidDivs_2" style="margin-bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                    <div style="display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                        <input type="text" id="captchaInputImprove" required style="height: 20px; width: 100px; font-size: 18px; padding: 5px;">
+                        <img id="captchaImageImprove" src="/captcha" alt="CAPTCHA Image" style="height: 40px;">
+                        <svg id="refreshCaptchaImprove" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 4v6h-6"></path>
+                            <path d="M1 20v-6h6"></path>
+                            <path d="M3.51 9a9 9 0 0 1 14.47-4.21L23 10"></path>
+                            <path d="M20.49 15a9 9 0 0 1-14.47 4.21L1 14"></path>
+                        </svg>
+                    </div>
+                    <p class="formError_text" id="captchaImproveError" style="color: red; margin-top: 5px; width: 100%; text-align: center;">Invalid CAPTCHA</p>
+                </div>                
 
-				<div class="divCTA">
+				<div class="divCTA" style="margin-bottom: 20px;">
 					<div class="inptCont">
 						<input type="submit" class="commonInptBTN" id="improveExistingForm" value="Improve" />
 					</div>
@@ -353,6 +365,7 @@
     <!-- <p>🦸 Powering up your content with AI... Stand by, hero!</p> -->
 </div>
 
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
     function showLoader() {
@@ -388,150 +401,199 @@
     }
 
     function loadCaptcha() {
-        document.getElementById("captchaImage").src = "/captcha?" + new Date().getTime(); // Prevent caching
+        let img = document.getElementById("captchaImage");
+        // img.src = "/captcha"
+        img.src = "/captcha?t=" + new Date().getTime(); // Force browser to get a new image
     }
 
     function validateCaptcha() {
         return new Promise((resolve) => {
             let userInput = document.getElementById("captchaInput").value.trim();
-
+            
             fetch("/validate", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ captcha: userInput })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById("captchaError").textContent = "CAPTCHA validated successfully!";
-                    // document.getElementById("captchaError").style.color = "green";
-                    document.getElementById("captchaError").style.display = "none";
-
-                    resolve(true); // CAPTCHA is valid
-                } else {
-                    document.getElementById("captchaError").textContent = "Invalid CAPTCHA!";
-                    // document.getElementById("captchaError").style.color = "red";
-                    document.getElementById("captchaError").style.display = "block";
-
-                    loadCaptcha(); // Reload CAPTCHA on failure
-                    resolve(false); // CAPTCHA is invalid
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || "CAPTCHA validation failed");
+                    });
                 }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById("captchaError").style.display = "none";
+                resolve(true);
             })
             .catch(error => {
-                console.error("Error:", error);
-                resolve(false); // In case of an error, fail validation
+                document.getElementById("captchaError").textContent = error.message;
+                document.getElementById("captchaError").style.display = "block";
+                resolve(false);
             });
         });
     }
 
+    // JavaScript for Improve tab CAPTCHA
     function loadCaptchaImprove() {
-        document.getElementById("captchaImage").src = "/captcha?" + new Date().getTime(); // Prevent caching
+        let img = document.getElementById("captchaImageImprove");
+        // img.src = "/captcha"
+        img.src = "/captcha?t=" + new Date().getTime(); // Force browser to get a new image
     }
 
     function validateCaptchaImprove() {
         return new Promise((resolve) => {
             let userInput = document.getElementById("captchaInputImprove").value.trim();
-
-            fetch("/validateImprove", {
+            
+            fetch("/validate", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ captcha: userInput })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById("captchaImproveError").textContent = "CAPTCHA validated successfully!";
-                    // document.getElementById("captchaImproveError").style.color = "green";
-                    document.getElementById("captchaImproveError").style.display = "none";
-
-                    resolve(true); // CAPTCHA is valid
-                } else {
-                    document.getElementById("captchaImproveError").textContent = "Invalid CAPTCHA!";
-                    // document.getElementById("captchaImproveError").style.color = "red";
-                    document.getElementById("captchaImproveError").style.display = "block";
-
-                    loadCaptcha(); // Reload CAPTCHA on failure
-                    resolve(false); // CAPTCHA is invalid
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || "CAPTCHA validation failed");
+                    });
                 }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById("captchaImproveError").style.display = "none";
+                resolve(true);
             })
             .catch(error => {
-                console.error("Error:", error);
-                resolve(false); // In case of an error, fail validation
+                document.getElementById("captchaImproveError").textContent = error.message;
+                document.getElementById("captchaImproveError").style.display = "block";
+                resolve(false);
             });
         });
     }
 
+        async function handleFormSubmission(buttonId, formSelector) {
+            document.getElementById(buttonId).addEventListener("click", async function (event) {
+                event.preventDefault(); // Prevent default form submission
 
-    async function handleFormSubmission(buttonId, formSelector) {
-        document.getElementById(buttonId).addEventListener("click", async function (event) {
-            event.preventDefault(); // Prevent default form submission
+                const form = document.querySelector(formSelector);
 
-            const form = document.querySelector(formSelector);
+                if (!validateForm(form)) {
+                    return; // Stop if validation fails
+                }
 
-            if (!validateForm(form)) {
-                return; // Stop if validation fails
-            }
-
-            if (form.contains(document.getElementById("captchaInput"))) {
-                    const isCaptchaValid = await validateCaptcha();
-                    if (!isCaptchaValid) {
-                        return; // Stop if CAPTCHA validation fails
+                if (form.contains(document.getElementById("captchaInput"))) {
+                        const isCaptchaValid = await validateCaptcha();
+                        if (!isCaptchaValid) {
+                            return; // Stop if CAPTCHA validation fails
+                        }
                     }
-                }
 
-                // Await the promise from validateCaptchaImprove if the form has that input
-            if (form.contains(document.getElementById("captchaInputImprove"))) {
-                    const isCaptchaValidImprove = await validateCaptchaImprove();
-                    if (!isCaptchaValidImprove) {
-                        return; // Stop if CAPTCHA validation fails
+                    // Await the promise from validateCaptchaImprove if the form has that input
+                if (form.contains(document.getElementById("captchaInputImprove"))) {
+                        const isCaptchaValidImprove = await validateCaptchaImprove();
+                        if (!isCaptchaValidImprove) {
+                            return; // Stop if CAPTCHA validation fails
+                        }
                     }
-                }
 
-            showLoader(); // Show loader before submitting
+                showLoader(); // Show loader before submitting
 
-            setTimeout(function () {
-                form.submit(); // Submit form after delay
-            }, 2000); // Delay for loader effect
-        });
-    }
-
-    function setupLiveValidation() {
-        const requiredFields = document.querySelectorAll("[required]");
-
-        requiredFields.forEach(field => {
-            field.addEventListener("input", function () {
-                let errorSpan = field.closest(".chidDivs_2").querySelector(".formError_text");
-                if (errorSpan) {
-                    errorSpan.textContent = "";
-                    field.classList.remove("error");
-                }
+                setTimeout(function () {
+                    form.submit(); // Submit form after delay
+                }, 2000); // Delay for loader effect
             });
+        }
+
+        function setupLiveValidation() {
+            const requiredFields = document.querySelectorAll("[required]");
+
+            requiredFields.forEach(field => {
+                field.addEventListener("input", function () {
+                    let errorSpan = field.closest(".chidDivs_2").querySelector(".formError_text");
+                    if (errorSpan) {
+                        errorSpan.textContent = "";
+                        field.classList.remove("error");
+                    }
+                });
+            });
+        }
+
+        // Attach event listeners to buttons for form submission
+        handleFormSubmission("createNewForm", 'form[action="/createnew"]');
+        handleFormSubmission("improveExistingForm", 'form[action="/improveexisting"]');
+
+        setupLiveValidation();
+        const createNewTab = document.evaluate('/html/body/div/div[1]/ul[1]/li[1]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        const improveOldTab = document.evaluate('/html/body/div/div[1]/ul[1]/li[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+    if (createNewTab && improveOldTab) {
+        createNewTab.addEventListener("click", function () {
+            console.log("For CreateNew")
+            loadCaptcha(); // Load new CAPTCHA for Create New tab
+        });
+
+        improveOldTab.addEventListener("click", function () {
+            loadCaptchaImprove(); // Load new CAPTCHA for Improve Existing tab
         });
     }
 
-    // Attach event listeners to buttons for form submission
-    handleFormSubmission("createNewForm", 'form[action="/createnew"]');
-    handleFormSubmission("improveExistingForm", 'form[action="/improveexisting"]');
-
-    setupLiveValidation();
+    // Load CAPTCHA on page load
     loadCaptcha();
-});
+    // loadCaptchaImprove();
+    });
 
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initial load of captchas
+        // loadCaptcha();
+        // loadCaptchaImprove();
+        
+        // Add refresh button event listeners
+        document.getElementById("refreshCaptcha")?.addEventListener("click", function(e) {
+            e.preventDefault();
+            loadCaptcha();
+        });
+
+        document.getElementById("refreshCaptchaImprove")?.addEventListener("click", function(e) {
+            e.preventDefault();
+            loadCaptchaImprove();
+        });
+    });
+
+    // Standalone functions that can be called directly from HTML onclick attribute
+    function loadCaptcha() {
+        let img = document.getElementById("captchaImage");
+        if (img) {
+            img.src = "/captcha?t=" + new Date().getTime(); // Force browser to get a new image
+            console.log("Captcha refreshed for Create tab");
+        } else {
+            console.error("Captcha image element not found for Create tab");
+        }
+    }
+
+    function loadCaptchaImprove() {
+        let img = document.getElementById("captchaImageImprove");
+        if (img) {
+            img.src = "/captcha?t=" + new Date().getTime(); // Force browser to get a new image
+            console.log("Captcha refreshed for Improve tab");
+        } else {
+            console.error("Captcha image element not found for Improve tab");
+        }
+    }
+</script>
+
 
 <script type="text/javascript" src="{{ url_for('static', filename='scripts/index.js') }}"></script>
 <script type="text/javascript">
     const CTA_OPTIONS = {
-        "Fashion & Apparel": ["Shop Trends", "Get Your Look", "New Arrivals", "Upgrade Now"],
-        "Beauty & Personal Care": ["Glow Up", "Try Now", "Find Your Shade", "Shop Beauty"],
+        "Fashion & Apparel": ["Buy Now","Shop Trends", "Get Your Look", "New Arrivals", "Upgrade Now"],
+        "Beauty & Personal Care": ["Buy Now","Try Now", "Glow Up",  "Find Your Shade", "Shop Now"],
         "Health & Wellness": ["Start Now", "Get Healthy", "Book Now", "Feel Better"],
         "Food & Beverages": ["Order Now", "Satisfy Cravings", "Taste It", "Fresh & Delicious"],
         "Tech & Gadgets": ["Pre-Order", "Upgrade Tech", "Buy Now", "Limited Stock"],
-        "Financial Services & Insurance": ["Get Quote", "Secure Future", "Compare Plans", "Start Saving"],
+        "Financial Services & Insurance": ["Pay Now", "Get Quote", "Secure Future", "Compare Plans", "Start Saving"],
         "Entertainment & Media": ["Watch Now", "Get Ticket", "Stream Now", "Subscribe Now"],
         "Arts & Crafts": ["Start DIY", "Get Creative", "Buy Handmade", "Express Yourself"],
         "Automotive & Accessories": ["Test Drive", "Upgrade Ride", "Shop Accessories", "Exclusive Deals"]
@@ -884,9 +946,13 @@ function validateLength(input, maxLength) {
 
            $("#createNewResultSection").hide();
            $("#improveExistingResultSection").show();
+
+           console.log("**********%%%%%%%%%%%%%**********",improveData.result)
            if (improveExistingResult) {
-            $(".summeryDiv p").html(improveExistingResult);
-        }
+                // $(".summeryDiv p").html(improveExistingResult);
+                $(".summeryDiv p").empty().html(improveExistingResult);
+            } 
+
             if (improveData) {
                 $("input[name='category']").val(improveData.category || "");
                 $("input[name='brand']").val(improveData.brand || "");
@@ -896,13 +962,21 @@ function validateLength(input, maxLength) {
                 if (improveData.ab_testing !== undefined) {
                     $("input[name='ab_testing']").prop("checked", improveData.ab_testing);
                 }
+
                 if (improveData.existing_content) {
-                    $("textarea[name='existing_content']").val(existing_content);
-                }
+                    $("textarea[name='existing_content']").val(improveData.existing_content);
+                } 
+                // if (improveData.existing_content) {
+                //     $("textarea[name='existing_content']").val(improveData.original_content);
+                // } 
+
             }
        });
    }
    
-   </script>
+   </script>    
+
+
 </body>
 </html>
+
