@@ -1,6 +1,8 @@
 from prompt import create_marketing_content, improve_marketing_content
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, session
 from PIL import Image, ImageDraw, ImageFont
+from flask_session import Session
+from flask_cors import CORS
 import random
 import io
 import string
@@ -10,7 +12,16 @@ import time
 
 # Initialize the flask app
 app = Flask(__name__)
+
+CORS(app, supports_credentials=True)
+app.config['SESSION_COOKIE_SECURE'] = True  # for HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_PERMANENT'] = False
+
+app.config['SESSION_TYPE'] = 'filesystem'  # or another persistent session type
 app.secret_key = os.urandom(24)  # Generates a random secret key
+Session(app)
 
 @app.route("/", methods=["GET"])
 def index():
@@ -150,49 +161,22 @@ def get_content():
 
             improved_data['existing_content'] = generated_data['result']
             return jsonify({"improved_data": improved_data}), 200
-        
-
-# Function to load the font
-def get_font():
-    font_path = os.path.join(os.path.dirname(__file__), "fonts", "DejaVuSans-Bold.ttf")  # Path to bundled font
-    try:
-        return ImageFont.truetype(font_path, 36)  # Adjust size as needed
-    except Exception as e:
-        print(f"Font loading error: {e}")
-        return ImageFont.load_default()
 
 def generate_captcha_text(length=5):
     """Generate a random CAPTCHA text with uppercase, lowercase, and digits."""
     characters = string.ascii_letters + string.digits  # Uppercase, lowercase, and numbers
     return "".join(random.choices(characters, k=length))
 
-
 def create_captcha_image(text):
     """Create a CAPTCHA image from the given text."""
-    font = get_font()
-
-    font = get_font()
-    image = Image.new("RGB", (1, 1)) 
-    draw = ImageDraw.Draw(image)
-
-    # Get text bounding box
-    bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
-
-        # Add padding to avoid cutting
-    width = text_width + 40  # Extra space to prevent cutoff
-    height = max(60, text_height + 20)  # Ensure minimum height
-
+    width, height = 150, 60
     image = Image.new("RGB", (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
 
-    # Center the text
-    x = (width - text_width) // 2
-    y = (height - text_height) // 2
-    draw.text((x, y), text, fill=(0, 0, 0), font=font)
-
-
+    try:
+        font = ImageFont.truetype("arial.ttf", 36)
+    except:
+        font = ImageFont.load_default()
 
     # Add some noise/lines to make it harder for bots
     for i in range(5):
@@ -200,21 +184,15 @@ def create_captcha_image(text):
         y1 = random.randint(0, height)
         x2 = random.randint(0, width)
         y2 = random.randint(0, height)
-        draw.line([(x1, y1), (x2, y2)], fill=(128, 128, 128), width=2)
+        draw.line([(x1, y1), (x2, y2)], fill=(0, 0, 255), width=1)
 
+    draw.text((20, 10), text, fill=(0, 0, 0), font=font)
 
     # Save image to a byte stream
     img_io = io.BytesIO()
     image.save(img_io, format="PNG")
     img_io.seek(0)
     return img_io
-
-@app.route("/clear_session", methods=["POST"])
-def clear_session():
-    print("Before Clearing:", session)  # Debugging step
-    session.clear()
-    print("After Clearing:", session)  # Should be empty
-    return "", 204
 
 @app.route("/captcha", methods=["GET"])
 def get_captcha():
@@ -231,18 +209,31 @@ def get_captcha():
 
 @app.route("/validate", methods=["POST"])
 def validate_captcha():
-    """Validate user input against the stored CAPTCHA."""
     # Get user input and stored captcha
     user_input = request.json.get("captcha", "").strip()
     stored_captcha = session.get("captcha_text", "")
-    print(stored_captcha)
-    print(f"Validating Create: User={user_input}, Stored={stored_captcha}")
+    
+    # Extensive logging
+    print(f"Validation Attempt:")
+    print(f"User Input: {user_input}")
+    print(f"Stored CAPTCHA: {stored_captcha}")
+    print(f"Full Session Contents: {dict(session)}")
     
     # Compare and return result
-    if user_input == stored_captcha:
+    is_valid = user_input.lower() == stored_captcha.lower()
+    
+    if is_valid:
         return jsonify({"success": True, "message": "CAPTCHA validated!"})
     else:
-        return jsonify({"success": False, "message": "Invalid CAPTCHA!"}), 400
+        return jsonify({
+            "success": False, 
+            "message": "Invalid CAPTCHA!", 
+            "debug": {
+                "user_input": user_input,
+                "stored_captcha": stored_captcha,
+                "session_status": "Captured"
+            }
+        }), 400
 
 if __name__ == "__main__":
     # app.run(host="0.0.0.0", port=8080, debug=True)
