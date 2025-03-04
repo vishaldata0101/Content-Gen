@@ -15,9 +15,6 @@ import time
 app = Flask(__name__)
 
 CORS(app, supports_credentials=True)
-app.config['SESSION_COOKIE_SECURE'] = True  # for HTTPS
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_PERMANENT'] = False
 app.config["SESSION_USE_SIGNER"] = True
 app.config["SESSION_REDIS"] = Redis(host='localhost', port=6379)
