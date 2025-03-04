@@ -150,26 +150,14 @@ def get_content():
 
             improved_data['existing_content'] = generated_data['result']
             return jsonify({"improved_data": improved_data}), 200
-        
-
-# Function to load the font
-def get_font():
-    font_path = os.path.join(os.path.dirname(__file__), "fonts", "DejaVuSans-Bold.ttf")  # Path to bundled font
-    try:
-        return ImageFont.truetype(font_path, 36)  # Adjust size as needed
-    except Exception as e:
-        print(f"Font loading error: {e}")
-        return ImageFont.load_default()
 
 def generate_captcha_text(length=5):
     """Generate a random CAPTCHA text with uppercase, lowercase, and digits."""
     characters = string.ascii_letters + string.digits  # Uppercase, lowercase, and numbers
     return "".join(random.choices(characters, k=length))
 
-
 def create_captcha_image(text):
     """Create a CAPTCHA image from the given text."""
-    font = get_font()
     width, height = 150, 60
     image = Image.new("RGB", (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
