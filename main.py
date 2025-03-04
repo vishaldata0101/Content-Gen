@@ -8,6 +8,7 @@ import io
 import string
 import json
 import os
+from redis import Redis
 import time
 
 # Initialize the flask app
@@ -18,14 +19,16 @@ app.config['SESSION_COOKIE_SECURE'] = True  # for HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_PERMANENT'] = False
+app.config["SESSION_USE_SIGNER"] = True
+app.config["SESSION_REDIS"] = Redis(host='localhost', port=6379)
 
-app.config['SESSION_TYPE'] = 'filesystem'  # or another persistent session type
+app.config['SESSION_TYPE'] = 'redis'  # or another persistent session type
 app.secret_key = os.urandom(24)  # Generates a random secret key
 Session(app)
 
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("index.html")  # Renders the form page
+    return render_template("indexg.html")  # Renders the form page
 
 @app.route("/createnew", methods=["POST", "GET"])
 def generate_content():
@@ -76,7 +79,7 @@ def generate_content():
         "result": result
     }
 
-    return render_template("index.html", content=result, create_content=result, form_data_create=json.dumps(form_data or {}),
+    return render_template("indexg.html", content=result, create_content=result, form_data_create=json.dumps(form_data or {}),
                           form_data=json.dumps(form_data or {}))
 
 @app.route("/improveexisting", methods=["POST", "GET"])
@@ -126,7 +129,7 @@ def improve_content():
         "result": results
     }
     
-    return render_template("index.html", content=results, improve_content=results, 
+    return render_template("indexg.html", content=results, improve_content=results, 
                           form_data=json.dumps(data_dict, ensure_ascii=False),
                           form_data_improve=json.dumps(data_dict_i, ensure_ascii=False),
                           existing_content=existing_content)
@@ -237,4 +240,4 @@ def validate_captcha():
 
 if __name__ == "__main__":
     # app.run(host="0.0.0.0", port=8080, debug=True)
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)
