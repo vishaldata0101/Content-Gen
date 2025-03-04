@@ -157,6 +157,7 @@
                 <div class="parentDiv CTA">
                     <div class="ackText" style="margin-bottom: 20px;">
                         <b>Need content for AB testing</b>
+
                         <input type="checkbox" name="ab_testing" value="true" id="ackText_check_1" />
                         <label for="ackText_check_1"></label>
                     </div>
@@ -165,7 +166,7 @@
                         <div style="display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px;">
                             <input type="text" id="captchaInput" required style="height: 20px; width: 100px; font-size: 18px; padding: 5px;">
                             <img id="captchaImage" src="/captcha" alt="CAPTCHA Image" style="height: 40px;">
-                            <svg id="refreshCaptcha" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#108899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg id="refreshCaptcha" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M23 4v6h-6"></path>
                                 <path d="M1 20v-6h6"></path>
                                 <path d="M3.51 9a9 9 0 0 1 14.47-4.21L23 10"></path>
@@ -243,7 +244,7 @@
 					<p class="formError_text" id="">error message</p>
 				</div>
 				<div class="chidDivs_2">
-					<div class="labelDiv reqField">Improvement required</div>
+					<div class="labelDiv reqField">Any specific comment</div>
 					<div class="inptCont">
 						<input type="text" identifier="specific_input_improve" name="specific_input" class="commonInpt" placeholder="Input Here (max. 75 characters)" 
                         required maxlength="76" onkeyup="validateLength(this, 75)" />
@@ -266,7 +267,7 @@
                     <div style="display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px;">
                         <input type="text" id="captchaInputImprove" required style="height: 20px; width: 100px; font-size: 18px; padding: 5px;">
                         <img id="captchaImageImprove" src="/captcha" alt="CAPTCHA Image" style="height: 40px;">
-                        <svg id="refreshCaptchaImprove" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#108899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg id="refreshCaptchaImprove" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M23 4v6h-6"></path>
                             <path d="M1 20v-6h6"></path>
                             <path d="M3.51 9a9 9 0 0 1 14.47-4.21L23 10"></path>
@@ -360,9 +361,7 @@
 <div id="overlay" class="overlay" style="display: none;"></div>
 
 <div id="loader" class="loader" style="display: none;">
-    <div class="spinner"></div> <!-- Rotating ring -->
-    <p>🚀 Supercharging your content with AI... Hang tight!</p>
-    <!-- <p>🦸 Powering up your content with AI... Stand by, hero!</p> -->
+    <p>Processing...</p>
 </div>
 
 
@@ -404,14 +403,17 @@
         let img = document.getElementById("captchaImage");
         // img.src = "/captcha"
         img.src = "/captcha?t=" + new Date().getTime(); // Force browser to get a new image
+        
     }
 
     function validateCaptcha() {
         return new Promise((resolve) => {
             let userInput = document.getElementById("captchaInput").value.trim();
-            
+            console.log("userInput",userInput)
+
             fetch("/validate", {
                 method: "POST",
+                credentials: 'include',
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ captcha: userInput })
             })
@@ -448,6 +450,7 @@
             
             fetch("/validate", {
                 method: "POST",
+                credentials: 'include',
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ captcha: userInput })
             })
@@ -537,6 +540,15 @@
         });
     }
 
+    document.getElementById("refreshCaptcha")?.addEventListener("click", function(e) {
+            e.preventDefault();
+            loadCaptcha();
+        });
+
+    document.getElementById("refreshCaptchaImprove")?.addEventListener("click", function(e) {
+            e.preventDefault();
+            loadCaptchaImprove();
+        })
     // Load CAPTCHA on page load
     loadCaptcha();
     // loadCaptchaImprove();
@@ -544,56 +556,17 @@
 
 </script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Initial load of captchas
-        // loadCaptcha();
-        // loadCaptchaImprove();
-        
-        // Add refresh button event listeners
-        document.getElementById("refreshCaptcha")?.addEventListener("click", function(e) {
-            e.preventDefault();
-            loadCaptcha();
-        });
-
-        document.getElementById("refreshCaptchaImprove")?.addEventListener("click", function(e) {
-            e.preventDefault();
-            loadCaptchaImprove();
-        });
-    });
-
-    // Standalone functions that can be called directly from HTML onclick attribute
-    function loadCaptcha() {
-        let img = document.getElementById("captchaImage");
-        if (img) {
-            img.src = "/captcha?t=" + new Date().getTime(); // Force browser to get a new image
-            console.log("Captcha refreshed for Create tab");
-        } else {
-            console.error("Captcha image element not found for Create tab");
-        }
-    }
-
-    function loadCaptchaImprove() {
-        let img = document.getElementById("captchaImageImprove");
-        if (img) {
-            img.src = "/captcha?t=" + new Date().getTime(); // Force browser to get a new image
-            console.log("Captcha refreshed for Improve tab");
-        } else {
-            console.error("Captcha image element not found for Improve tab");
-        }
-    }
-</script>
 
 
 <script type="text/javascript" src="{{ url_for('static', filename='scripts/index.js') }}"></script>
 <script type="text/javascript">
     const CTA_OPTIONS = {
-        "Fashion & Apparel": ["Buy Now","Shop Trends", "Get Your Look", "New Arrivals", "Upgrade Now"],
-        "Beauty & Personal Care": ["Buy Now","Try Now", "Glow Up",  "Find Your Shade", "Shop Now"],
+        "Fashion & Apparel": ["Shop Trends", "Get Your Look", "New Arrivals", "Upgrade Now"],
+        "Beauty & Personal Care": ["Glow Up", "Try Now", "Find Your Shade", "Shop Beauty"],
         "Health & Wellness": ["Start Now", "Get Healthy", "Book Now", "Feel Better"],
         "Food & Beverages": ["Order Now", "Satisfy Cravings", "Taste It", "Fresh & Delicious"],
         "Tech & Gadgets": ["Pre-Order", "Upgrade Tech", "Buy Now", "Limited Stock"],
-        "Financial Services & Insurance": ["Pay Now", "Get Quote", "Secure Future", "Compare Plans", "Start Saving"],
+        "Financial Services & Insurance": ["Get Quote", "Secure Future", "Compare Plans", "Start Saving"],
         "Entertainment & Media": ["Watch Now", "Get Ticket", "Stream Now", "Subscribe Now"],
         "Arts & Crafts": ["Start DIY", "Get Creative", "Buy Handmade", "Express Yourself"],
         "Automotive & Accessories": ["Test Drive", "Upgrade Ride", "Shop Accessories", "Exclusive Deals"]
