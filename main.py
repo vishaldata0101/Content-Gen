@@ -6,14 +6,12 @@ import io
 import string
 import json
 import os
+import time
 
 # Initialize the flask app
 app = Flask(__name__)
+app.secret_key = os.urandom(24)  # Generates a random secret key
 
-generated_data = None
-improved_data = None
-
-# Define routes for the Flask app
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")  # Renders the form page
@@ -22,9 +20,7 @@ def index():
 def generate_content():
     if request.method == "GET":
         return redirect(url_for("index"))  # ✅ Redirects if accessed via GET
-
-    global generated_data
-    # Get form data from index.html
+    
     category = request.form.get("category")
     brand = request.form.get("brand")
     objective = request.form.get("objective")
@@ -54,28 +50,29 @@ def generate_content():
     "tone": tone,
     "specific_input": specific_input,
     "ab_testing": ab_testing
-}
-    generated_data = {
-    "category": category,
-    "brand": brand,
-    "objective": objective,
-    "medium": medium,
-    "cta_button": cta_button,
-    "offer": offer,
-    "tone": tone,
-    "specific_input": specific_input,
-    "ab_testing": ab_testing,
-    "result" : result
-}
+    }
+    
+    session['generated_data'] = {
+        "category": request.form.get("category"),
+        "brand": request.form.get("brand"),
+        "objective": request.form.get("objective"),
+        "medium": request.form.get("medium"),
+        "cta_button": request.form.get("cta_button"),
+        "offer": request.form.get("offer"),
+        "tone": request.form.get("tone"),
+        "specific_input": request.form.get("specific_input"),
+        "ab_testing": request.form.get("ab_testing", "false") == "true",
+        "result": result
+    }
 
-    return render_template("index.html", content=result, create_content =result,form_data_create =json.dumps(form_data or {}),
-                          form_data=json.dumps(form_data or {}))  # Passes output to result.html
+    return render_template("index.html", content=result, create_content=result, form_data_create=json.dumps(form_data or {}),
+                          form_data=json.dumps(form_data or {}))
 
 @app.route("/improveexisting", methods=["POST", "GET"])
 def improve_content():
     if request.method == "GET":
         return redirect(url_for("index"))  # ✅ Redirects if accessed via GET
-    global improved_data
+
     # Get form data from index.html
     existing_content = request.form.get("existing_content")
     category = request.form.get("category")
@@ -98,7 +95,7 @@ def improve_content():
     "medium": medium,
     "specific_input": specific_input,
     "ab_testing": ab_testing
-     }
+    }
 
     data_dict_i = {
     "category": category,
@@ -106,36 +103,54 @@ def improve_content():
     "medium": medium,
     "specific_input": specific_input,
     "ab_testing": ab_testing
-     }
+    }
 
-    improved_data = {
-    "category": category,
-    "brand": brand,
-    "medium": medium,
-    "specific_input": specific_input,
-    "ab_testing": ab_testing,
-    "result":results,
-    "existing_content":existing_content
-     }
+    session['improved_data'] = {
+        "existing_content": request.form.get("existing_content"),
+        "category": request.form.get("category"),
+        "brand": request.form.get("brand"),
+        "medium": request.form.get("medium"),
+        "specific_input": request.form.get("specific_input"),
+        "ab_testing": request.form.get("ab_testing", "false") == "true",
+        "result": results
+    }
     
-    return render_template("index.html", content=results, improve_content= results,     form_data=json.dumps(data_dict, ensure_ascii=False),
-    form_data_improve=json.dumps(data_dict_i,ensure_ascii=False),
-    existing_content = existing_content)  # Passes output to result.html
+    return render_template("index.html", content=results, improve_content=results, 
+                          form_data=json.dumps(data_dict, ensure_ascii=False),
+                          form_data_improve=json.dumps(data_dict_i, ensure_ascii=False),
+                          existing_content=existing_content)
 
 @app.route("/getdata", methods=["POST", "GET"])
 def get_content():
+    if not session.get('generated_data') and not session.get('improved_data'):
+        return jsonify({"message": "No data available"}), 200  # ✅ Return empty response
+    
     if request.method == "POST":
         requested_data = request.form.get("tabname", "")
-        print(requested_data)
-        print(generated_data)
-        if requested_data == "CreateNew":
-            print(generated_data)
-            return jsonify({"generated_data": generated_data}), 200
-        elif requested_data == "ImproveOld":
-            print(improved_data)
-            return jsonify({"improved_data": improved_data}), 200
 
-app.secret_key = os.urandom(24)  # Generates a random secret key
+        if requested_data == "CreateNew":
+            return jsonify({"generated_data": session.get('generated_data', {})}), 200
+        elif requested_data == "ImproveOld":
+            generated_data = session.get('generated_data', {})
+            improved_data = session.get('improved_data', {})
+            if not improved_data:
+                print("No improved data found, using generated data instead.")
+                improved_data = generated_data.copy()
+            else:
+                # Check if other data is available and compare key-value pairs
+                for key, value in generated_data.items():
+
+                    if key in improved_data and improved_data[key] == value:
+                        continue  # Keep the improved data
+                    else:
+                        if key != "result":
+                            improved_data[key] = generated_data[key]
+
+            # Now, improved_data contains the best available information
+
+            improved_data['existing_content'] = generated_data['result']
+            return jsonify({"improved_data": improved_data}), 200
+        
 
 # Function to load the font
 def get_font():
@@ -146,35 +161,33 @@ def get_font():
         print(f"Font loading error: {e}")
         return ImageFont.load_default()
 
-# Function to generate a CAPTCHA text
 def generate_captcha_text(length=5):
-    """Generate a random CAPTCHA text."""
-    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
-
+    """Generate a random CAPTCHA text with uppercase, lowercase, and digits."""
+    characters = string.ascii_letters + string.digits  # Uppercase, lowercase, and numbers
+    return "".join(random.choices(characters, k=length))
 
 
 def create_captcha_image(text):
     """Create a CAPTCHA image from the given text."""
     font = get_font()
-    dummy_image = Image.new("RGB", (1, 1))  # Dummy image to calculate text size
-    draw = ImageDraw.Draw(dummy_image)
-    
-    # Get text bounding box
-    bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
-
-    # Add padding to avoid cutting
-    width = text_width + 40  # Extra space to prevent cutoff
-    height = max(60, text_height + 20)  # Ensure minimum height
-
+    width, height = 150, 60
     image = Image.new("RGB", (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
 
-    # Center the text
-    x = (width - text_width) // 2
-    y = (height - text_height) // 2
-    draw.text((x, y), text, fill=(0, 0, 0), font=font)
+    try:
+        font = ImageFont.truetype("arial.ttf", 36)
+    except:
+        font = ImageFont.load_default()
+
+    # Add some noise/lines to make it harder for bots
+    for i in range(5):
+        x1 = random.randint(0, width)
+        y1 = random.randint(0, height)
+        x2 = random.randint(0, width)
+        y2 = random.randint(0, height)
+        draw.line([(x1, y1), (x2, y2)], fill=(0, 0, 255), width=1)
+
+    draw.text((20, 10), text, fill=(0, 0, 0), font=font)
 
     # Save image to a byte stream
     img_io = io.BytesIO()
@@ -182,56 +195,41 @@ def create_captcha_image(text):
     img_io.seek(0)
     return img_io
 
-
+@app.route("/clear_session", methods=["POST"])
+def clear_session():
+    print("Before Clearing:", session)  # Debugging step
+    session.clear()
+    print("After Clearing:", session)  # Should be empty
+    return "", 204
 
 @app.route("/captcha", methods=["GET"])
 def get_captcha():
     """Generate and return a CAPTCHA image."""
+    # Generate captcha text
     captcha_text = generate_captcha_text()
-    print("captcha_text",captcha_text)
-    session["captcha"] = captcha_text  # Store CAPTCHA in session
-
-    img_io = create_captcha_image(captcha_text)
+    # Store in session
+    session["captcha_text"] = captcha_text
+    print(f"New CAPTCHA stored: {session.get('captcha_text')}")
+    
+    # Create and return image
+    img_io = create_captcha_image(session.get('captcha_text'))
     return send_file(img_io, mimetype="image/png")
 
-
-# Function to validate the CAPTCHA
 @app.route("/validate", methods=["POST"])
 def validate_captcha():
     """Validate user input against the stored CAPTCHA."""
+    # Get user input and stored captcha
     user_input = request.json.get("captcha", "").strip()
-    correct_captcha = session.get("captcha", "")
+    stored_captcha = session.get("captcha_text", "")
+    print(stored_captcha)
+    print(f"Validating Create: User={user_input}, Stored={stored_captcha}")
     
-    print(correct_captcha,user_input)
-    if user_input == correct_captcha:
-        return jsonify({"message": "CAPTCHA validated successfully!", "success": True})
+    # Compare and return result
+    if user_input == stored_captcha:
+        return jsonify({"success": True, "message": "CAPTCHA validated!"})
     else:
-        return jsonify({"message": "Invalid CAPTCHA!", "success": False}), 400
+        return jsonify({"success": False, "message": "Invalid CAPTCHA!"}), 400
 
-@app.route("/captchaImprove", methods=["GET"])
-def get_captchaImprove():
-    """Generate and return a CAPTCHA image."""
-    captcha_text = generate_captcha_text()
-    print("captcha_text",captcha_text)
-    session["captchaImprove"] = captcha_text  # Store fCAPTCHA in session
-
-    img_io = create_captcha_image(captcha_text)
-    return send_file(img_io, mimetype="image/png")
-
-@app.route("/validateImprove", methods=["POST"])
-def validate_captchaImprove():
-    """Validate user input against the stored CAPTCHA."""
-    user_input = request.json.get("captcha", "").strip()
-    correct_captcha = session.get("captchaImprove", "")
-    
-    print(correct_captcha,user_input)
-    if user_input == correct_captcha:
-        return jsonify({"message": "CAPTCHA validated successfully!", "success": True})
-    else:
-        return jsonify({"message": "Invalid CAPTCHA!", "success": False}), 400
-    
 if __name__ == "__main__":
     # app.run(host="0.0.0.0", port=8080, debug=True)
     app.run(debug=True)
-    
-
