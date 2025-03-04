@@ -3,3 +3,5 @@ gunicorn
 openai==0.28
 python-dotenv
 pillow
+flask_session
+flask_cors
