@@ -244,7 +244,7 @@
 					<p class="formError_text" id="">error message</p>
 				</div>
 				<div class="chidDivs_2">
-					<div class="labelDiv reqField">Any specific comment</div>
+					<div class="labelDiv reqField">Improvement required</div>
 					<div class="inptCont">
 						<input type="text" identifier="specific_input_improve" name="specific_input" class="commonInpt" placeholder="Input Here (max. 75 characters)" 
                         required maxlength="76" onkeyup="validateLength(this, 75)" />
@@ -361,8 +361,11 @@
 <div id="overlay" class="overlay" style="display: none;"></div>
 
 <div id="loader" class="loader" style="display: none;">
-    <p>Processing...</p>
+    <div class="spinner"></div> <!-- Rotating ring -->
+    <p>🚀 Supercharging your content with AI... Hang tight!</p>
+    <!-- <p>🦸 Powering up your content with AI... Stand by, hero!</p> -->
 </div>
+	
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
 
@@ -555,12 +558,12 @@
 <script type="text/javascript" src="{{ url_for('static', filename='scripts/index.js') }}"></script>
 <script type="text/javascript">
     const CTA_OPTIONS = {
-        "Fashion & Apparel": ["Shop Trends", "Get Your Look", "New Arrivals", "Upgrade Now"],
-        "Beauty & Personal Care": ["Glow Up", "Try Now", "Find Your Shade", "Shop Beauty"],
+        "Fashion & Apparel": ["Buy Now","Shop Trends", "Get Your Look", "New Arrivals", "Upgrade Now"],
+        "Beauty & Personal Care": ["Buy Now","Try Now", "Glow Up",  "Find Your Shade", "Shop Now"],
         "Health & Wellness": ["Start Now", "Get Healthy", "Book Now", "Feel Better"],
         "Food & Beverages": ["Order Now", "Satisfy Cravings", "Taste It", "Fresh & Delicious"],
         "Tech & Gadgets": ["Pre-Order", "Upgrade Tech", "Buy Now", "Limited Stock"],
-        "Financial Services & Insurance": ["Get Quote", "Secure Future", "Compare Plans", "Start Saving"],
+        "Financial Services & Insurance": ["Pay Now", "Get Quote", "Secure Future", "Compare Plans", "Start Saving"],
         "Entertainment & Media": ["Watch Now", "Get Ticket", "Stream Now", "Subscribe Now"],
         "Arts & Crafts": ["Start DIY", "Get Creative", "Buy Handmade", "Express Yourself"],
         "Automotive & Accessories": ["Test Drive", "Upgrade Ride", "Shop Accessories", "Exclusive Deals"]
