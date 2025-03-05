@@ -158,28 +158,62 @@ def get_content():
             improved_data['existing_content'] = generated_data['result']
             return jsonify({"improved_data": improved_data}), 200
 
+
+# Function to load the font
+def get_font():
+    font_path = os.path.join(os.path.dirname(__file__), "fonts", "DejaVuSans-Bold.ttf")  # Path to bundled font
+    try:
+        return ImageFont.truetype(font_path, 36)  # Adjust size as needed
+    except Exception as e:
+        print(f"Font loading error: {e}")
+        return ImageFont.load_default()
+
 def generate_captcha_text(length=5):
     """Generate a random CAPTCHA text with uppercase, lowercase, and digits."""
     characters = string.ascii_letters + string.digits  # Uppercase, lowercase, and numbers
     return "".join(random.choices(characters, k=length))
 
+
 def create_captcha_image(text):
     """Create a CAPTCHA image from the given text."""
-    width, height = 180, 70
+    font = get_font()
+
+    font = get_font()
+    image = Image.new("RGB", (1, 1)) 
+    draw = ImageDraw.Draw(image)
+
+    # Get text bounding box
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+        # Add padding to avoid cutting
+    width = text_width + 40  # Extra space to prevent cutoff
+    height = max(60, text_height + 20)  # Ensure minimum height
+
     image = Image.new("RGB", (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
 
-    try:
-        font = ImageFont.truetype("arial.ttf", 40)
-    except:
-        font = ImageFont.load_default()
+    # Center the text
+    x = (width - text_width) // 2
+    y = (height - text_height) // 2
+    draw.text((x, y), text, fill=(0, 0, 0), font=font)
 
-    draw.text((40, 15), text, fill=(0, 0, 0), font=font)
 
+
+    # Add some noise/lines to make it harder for bots
+    for i in range(5):
+        x1 = random.randint(0, width)
+        y1 = random.randint(0, height)
+        x2 = random.randint(0, width)
+        y2 = random.randint(0, height)
+        draw.line([(x1, y1), (x2, y2)], fill=(128, 128, 128), width=2)
+
+
+    # Save image to a byte stream
     img_io = io.BytesIO()
     image.save(img_io, format="PNG")
     img_io.seek(0)
-    
     return img_io
 
 @app.get("/captcha")
