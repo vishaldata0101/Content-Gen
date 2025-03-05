@@ -165,7 +165,7 @@
                     <div class="captchaContainer chidDivs_2" style="margin-bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center;">
                         <div style="display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px;">
                             <input type="text" id="captchaInput" required style="height: 20px; width: 100px; font-size: 18px; padding: 5px;">
-                            <img id="captchaImage" src="/captcha" alt="CAPTCHA Image" style="height: 40px;">
+                            <img id="captchaImage" src="" alt="CAPTCHA Image" style="height: 40px;">
                             <svg id="refreshCaptcha" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M23 4v6h-6"></path>
                                 <path d="M1 20v-6h6"></path>
@@ -266,7 +266,7 @@
                 <div class="captchaContainer chidDivs_2" style="margin-bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center;">
                     <div style="display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px;">
                         <input type="text" id="captchaInputImprove" required style="height: 20px; width: 100px; font-size: 18px; padding: 5px;">
-                        <img id="captchaImageImprove" src="/captcha" alt="CAPTCHA Image" style="height: 40px;">
+                        <img id="captchaImageImprove" src="" alt="CAPTCHA Image" style="height: 40px;">
                         <svg id="refreshCaptchaImprove" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M23 4v6h-6"></path>
                             <path d="M1 20v-6h6"></path>
@@ -364,6 +364,7 @@
     <p>Processing...</p>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -400,79 +401,74 @@
     }
 
     function loadCaptcha() {
-        let img = document.getElementById("captchaImage");
-        // img.src = "/captcha"
-        img.src = "/captcha?t=" + new Date().getTime(); // Force browser to get a new image
-        
+        fetch("/captcha?t=" + new Date().getTime())  
+            .then(response => response.json())  
+            .then(data => {
+                // Set image source using base64
+                document.getElementById("captchaImage").src = "data:image/png;base64," + data.image;
+
+                // Store correct CAPTCHA text in sessionStorage
+                sessionStorage.setItem("captcha_text", data.text);
+                console.log("CAPTCHA Text (Stored for Validation):", data.text);
+            })
+            .catch(error => console.error("Error fetching CAPTCHA:", error));
     }
 
+    // Function to validate user input
     function validateCaptcha() {
-        return new Promise((resolve) => {
-            let userInput = document.getElementById("captchaInput").value.trim();
-            console.log("userInput",userInput)
+        let userInput = document.getElementById("captchaInput").value.trim();
+        let correctCaptcha = sessionStorage.getItem("captcha_text");
+        let errorMsg = document.getElementById("captchaError"); // Get the <p> tag for errors
 
-            fetch("/validate", {
-                method: "POST",
-                credentials: 'include',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ captcha: userInput })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.message || "CAPTCHA validation failed");
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById("captchaError").style.display = "none";
-                resolve(true);
-            })
-            .catch(error => {
-                document.getElementById("captchaError").textContent = error.message;
-                document.getElementById("captchaError").style.display = "block";
-                resolve(false);
-            });
-        });
+        if (userInput === correctCaptcha) {
+            console.log("✅ CAPTCHA Matched!");
+            errorMsg.textContent = ""; // Clear the error message if correct
+            errorMsg.style.display = "none"; // Hide the error message
+            return true;
+        } else {
+            console.log("❌ CAPTCHA Incorrect! Try Again.");
+            errorMsg.textContent = "Incorrect CAPTCHA. Please try again."; // Set error message
+            errorMsg.style.color = "red"; // Make the error text red
+            errorMsg.style.display = "block"; // Ensure the error is visible
+            return false;
+        }
     }
 
-    // JavaScript for Improve tab CAPTCHA
+    // Improved CAPTCHA loading function
     function loadCaptchaImprove() {
-        let img = document.getElementById("captchaImageImprove");
-        // img.src = "/captcha"
-        img.src = "/captcha?t=" + new Date().getTime(); // Force browser to get a new image
+        fetch("/captcha?t=" + new Date().getTime())  
+            .then(response => response.json())  
+            .then(data => {
+                // Set image source using base64
+                document.getElementById("captchaImageImprove").src = "data:image/png;base64," + data.image;
+
+                // Store correct CAPTCHA text in sessionStorage
+                sessionStorage.setItem("captcha_improve", data.text);
+                console.log("Improved CAPTCHA Text (Stored for Validation):", data.text);
+            })
+            .catch(error => console.error("Error fetching Improved CAPTCHA:", error));
     }
 
+    // Function to validate improved CAPTCHA input
     function validateCaptchaImprove() {
-        return new Promise((resolve) => {
-            let userInput = document.getElementById("captchaInputImprove").value.trim();
-            
-            fetch("/validate", {
-                method: "POST",
-                credentials: 'include',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ captcha: userInput })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.message || "CAPTCHA validation failed");
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById("captchaImproveError").style.display = "none";
-                resolve(true);
-            })
-            .catch(error => {
-                document.getElementById("captchaImproveError").textContent = error.message;
-                document.getElementById("captchaImproveError").style.display = "block";
-                resolve(false);
-            });
-        });
+        let userInput = document.getElementById("captchaInputImprove").value.trim();
+        let correctCaptcha = sessionStorage.getItem("captcha_improve");
+        let errorMsg = document.getElementById("captchaImproveError")
+
+        if (userInput === correctCaptcha) {
+            console.log("✅ Improved CAPTCHA Matched!");
+            errorMsg.textContent = ""; // Clear the error message if correct
+            errorMsg.style.display = "none"; // Hide the error message
+            return true;
+        } else {
+            console.log("❌ Improved CAPTCHA Incorrect! Try Again.");
+            errorMsg.textContent = "Incorrect CAPTCHA. Please try again."; // Set error message
+            errorMsg.style.color = "red"; // Make the error text red
+            errorMsg.style.display = "block"; // Ensure the error is visible
+            return false;
+        }
     }
+
 
         async function handleFormSubmission(buttonId, formSelector) {
             document.getElementById(buttonId).addEventListener("click", async function (event) {
@@ -485,19 +481,16 @@
                 }
 
                 if (form.contains(document.getElementById("captchaInput"))) {
-                        const isCaptchaValid = await validateCaptcha();
-                        if (!isCaptchaValid) {
-                            return; // Stop if CAPTCHA validation fails
-                        }
+                    if (!validateCaptcha()) { // Now checking return value
+                        return; // Stop if CAPTCHA validation fails
                     }
+                }
 
-                    // Await the promise from validateCaptchaImprove if the form has that input
                 if (form.contains(document.getElementById("captchaInputImprove"))) {
-                        const isCaptchaValidImprove = await validateCaptchaImprove();
-                        if (!isCaptchaValidImprove) {
-                            return; // Stop if CAPTCHA validation fails
-                        }
+                    if (!validateCaptchaImprove()) { // Now checking return value
+                        return; // Stop if CAPTCHA validation fails
                     }
+                }
 
                 showLoader(); // Show loader before submitting
 
@@ -526,36 +519,37 @@
         handleFormSubmission("improveExistingForm", 'form[action="/improveexisting"]');
 
         setupLiveValidation();
+        loadCaptcha();
+        loadCaptchaImprove()
         const createNewTab = document.evaluate('/html/body/div/div[1]/ul[1]/li[1]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
         const improveOldTab = document.evaluate('/html/body/div/div[1]/ul[1]/li[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
-    if (createNewTab && improveOldTab) {
-        createNewTab.addEventListener("click", function () {
-            console.log("For CreateNew")
-            loadCaptcha(); // Load new CAPTCHA for Create New tab
-        });
+        if (createNewTab && improveOldTab) {
+            createNewTab.addEventListener("click", function () {
+                console.log("For CreateNew")
+                loadCaptcha(); // Load new CAPTCHA for Create New tab
+            });
 
-        improveOldTab.addEventListener("click", function () {
-            loadCaptchaImprove(); // Load new CAPTCHA for Improve Existing tab
-        });
-    }
+            improveOldTab.addEventListener("click", function () {
+                loadCaptchaImprove(); // Load new CAPTCHA for Improve Existing tab
+            });
+        }
 
-    document.getElementById("refreshCaptcha")?.addEventListener("click", function(e) {
-            e.preventDefault();
-            loadCaptcha();
-        });
 
-    document.getElementById("refreshCaptchaImprove")?.addEventListener("click", function(e) {
-            e.preventDefault();
-            loadCaptchaImprove();
-        })
-    // Load CAPTCHA on page load
-    loadCaptcha();
-    // loadCaptchaImprove();
-    });
+        document.getElementById("refreshCaptcha")?.addEventListener("click", function(e) {
+                e.preventDefault();
+                loadCaptcha();
+            });
+
+        document.getElementById("refreshCaptchaImprove")?.addEventListener("click", function(e) {
+                e.preventDefault();
+                loadCaptchaImprove();
+            });
+
+
+        });
 
 </script>
-
 
 
 <script type="text/javascript" src="{{ url_for('static', filename='scripts/index.js') }}"></script>
@@ -759,7 +753,9 @@ document.getElementById("improveForm").addEventListener("click", function(event)
                             }
                         }
                     }
+                    
                 }
+
             } else {  
                 $("#createNewResultSection").hide();
                 $("#improveExistingResultSection").show();
@@ -785,6 +781,7 @@ document.getElementById("improveForm").addEventListener("click", function(event)
                     }
                 }
             }
+
         }
 
         function switchTab(index) {
@@ -851,24 +848,33 @@ function validateLength(input, maxLength) {
    
    // Function to send the request to the API
    async function sendTabRequest(tabname) {
-       try {
-           const response = await fetch('/getdata', {
-               method: 'POST',
-               headers: {
-                   'Content-Type': 'application/x-www-form-urlencoded',
-               },
-               body: `tabname=${tabname}`
-           });
-           
-           const data = await response.json();
-           // console.log('Response from API:', data);
-           return data;  // Return the API response data
-       } catch (error) {
-           console.error('Error:', error);
-           return null;  // Return null in case of an error
-       }
-   }
-   
+        try {
+            const response = await fetch('/getdata', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `tabname=${tabname}`
+            });
+
+            const data = await response.json();
+            const cachedData = sessionStorage.getItem(`cachedData_${tabname}`); // Store per tab
+
+            if (!cachedData || JSON.stringify(data) !== cachedData) {
+                // Data is new or updated, update sessionStorage for the specific tab
+                sessionStorage.setItem(`cachedData_${tabname}`, JSON.stringify(data));
+                console.log(`Session storage updated for ${tabname} with new data:`, data);
+            } else {
+                console.log(`No update needed for ${tabname}, session storage already has the latest data.`);
+            }
+
+            return data;  // Return the API response data
+        } catch (error) {
+            console.error('Error:', error);
+            return null;  // Return null in case of an error
+        }
+    }
+
    // Add event listeners to each element
    if (createNewTab) {
        createNewTab.addEventListener('click', async () => {
@@ -909,6 +915,7 @@ function validateLength(input, maxLength) {
            tabname = "ImproveOld";
            console.log("Tab name is: " + tabname);  // This logs the current tab name
            const response = await sendTabRequest(tabname); // Wait for the response from the API
+           
            filteredData = response.improved_data
    
            improveExistingResult = filteredData.result
