@@ -1,27 +1,20 @@
 from prompt import create_marketing_content, improve_marketing_content
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, session
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
 from PIL import Image, ImageDraw, ImageFont
-from flask_session import Session
-from flask_cors import CORS
 import random
 import io
 import string
 import json
 import os
-from redis import Redis
 import time
+import base64
+
+improved_data = None
+generated_data = None
 
 # Initialize the flask app
 app = Flask(__name__)
-
-CORS(app, supports_credentials=True)
-app.config['SESSION_PERMANENT'] = False
-app.config["SESSION_USE_SIGNER"] = True
-app.config["SESSION_REDIS"] = Redis(host='localhost', port=6379)
-
-app.config['SESSION_TYPE'] = 'redis'  # or another persistent session type
 app.secret_key = os.urandom(24)  # Generates a random secret key
-Session(app)
 
 @app.route("/", methods=["GET"])
 def index():
@@ -29,6 +22,7 @@ def index():
 
 @app.route("/createnew", methods=["POST", "GET"])
 def generate_content():
+    global generated_data
     if request.method == "GET":
         return redirect(url_for("index"))  # ✅ Redirects if accessed via GET
     
@@ -63,7 +57,7 @@ def generate_content():
     "ab_testing": ab_testing
     }
     
-    session['generated_data'] = {
+    generated_data = {
         "category": request.form.get("category"),
         "brand": request.form.get("brand"),
         "objective": request.form.get("objective"),
@@ -81,6 +75,8 @@ def generate_content():
 
 @app.route("/improveexisting", methods=["POST", "GET"])
 def improve_content():
+    global improved_data
+
     if request.method == "GET":
         return redirect(url_for("index"))  # ✅ Redirects if accessed via GET
 
@@ -116,7 +112,7 @@ def improve_content():
     "ab_testing": ab_testing
     }
 
-    session['improved_data'] = {
+    improved_data = {
         "existing_content": request.form.get("existing_content"),
         "category": request.form.get("category"),
         "brand": request.form.get("brand"),
@@ -133,17 +129,17 @@ def improve_content():
 
 @app.route("/getdata", methods=["POST", "GET"])
 def get_content():
-    if not session.get('generated_data') and not session.get('improved_data'):
-        return jsonify({"message": "No data available"}), 200  # ✅ Return empty response
+    global generated_data
+    global improved_data
     
     if request.method == "POST":
         requested_data = request.form.get("tabname", "")
 
         if requested_data == "CreateNew":
-            return jsonify({"generated_data": session.get('generated_data', {})}), 200
+            return jsonify({"generated_data": generated_data}), 200
         elif requested_data == "ImproveOld":
-            generated_data = session.get('generated_data', {})
-            improved_data = session.get('improved_data', {})
+            generated_data = generated_data
+            improved_data = improved_data
             if not improved_data:
                 print("No improved data found, using generated data instead.")
                 improved_data = generated_data.copy()
@@ -169,72 +165,33 @@ def generate_captcha_text(length=5):
 
 def create_captcha_image(text):
     """Create a CAPTCHA image from the given text."""
-    width, height = 150, 60
+    width, height = 180, 70
     image = Image.new("RGB", (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
 
     try:
-        font = ImageFont.truetype("arial.ttf", 36)
+        font = ImageFont.truetype("arial.ttf", 40)
     except:
         font = ImageFont.load_default()
 
-    # Add some noise/lines to make it harder for bots
-    for i in range(5):
-        x1 = random.randint(0, width)
-        y1 = random.randint(0, height)
-        x2 = random.randint(0, width)
-        y2 = random.randint(0, height)
-        draw.line([(x1, y1), (x2, y2)], fill=(0, 0, 255), width=1)
+    draw.text((40, 15), text, fill=(0, 0, 0), font=font)
 
-    draw.text((20, 10), text, fill=(0, 0, 0), font=font)
-
-    # Save image to a byte stream
     img_io = io.BytesIO()
     image.save(img_io, format="PNG")
     img_io.seek(0)
+    
     return img_io
 
-@app.route("/captcha", methods=["GET"])
+@app.get("/captcha")
 def get_captcha():
-    """Generate and return a CAPTCHA image."""
-    # Generate captcha text
-    captcha_text = generate_captcha_text()
-    # Store in session
-    session["captcha_text"] = captcha_text
-    print(f"New CAPTCHA stored: {session.get('captcha_text')}")
-    
-    # Create and return image
-    img_io = create_captcha_image(session.get('captcha_text'))
-    return send_file(img_io, mimetype="image/png")
+    text = generate_captcha_text()  # Generate random text
+    img_io = create_captcha_image(text)  # Generate image
+    print("New Captcha",text)
+    # Convert image to base64
+    img_base64 = base64.b64encode(img_io.getvalue()).decode()
 
-@app.route("/validate", methods=["POST"])
-def validate_captcha():
-    # Get user input and stored captcha
-    user_input = request.json.get("captcha", "").strip()
-    stored_captcha = session.get("captcha_text", "")
-    
-    # Extensive logging
-    print(f"Validation Attempt:")
-    print(f"User Input: {user_input}")
-    print(f"Stored CAPTCHA: {stored_captcha}")
-    print(f"Full Session Contents: {dict(session)}")
-    
-    # Compare and return result
-    is_valid = user_input.lower() == stored_captcha.lower()
-    
-    if is_valid:
-        return jsonify({"success": True, "message": "CAPTCHA validated!"})
-    else:
-        return jsonify({
-            "success": False, 
-            "message": "Invalid CAPTCHA!", 
-            "debug": {
-                "user_input": user_input,
-                "stored_captcha": stored_captcha,
-                "session_status": "Captured"
-            }
-        }), 400
+    return {"image": img_base64, "text": text}  # Send both image and text
 
 if __name__ == "__main__":
     # app.run(host="0.0.0.0", port=8080, debug=True)
-    app.run(debug=True, threaded=True)
+    app.run(debug=True)
