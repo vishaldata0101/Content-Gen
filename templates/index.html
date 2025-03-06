@@ -34,6 +34,8 @@
             <li class="active-tab">
             <form name="createnewForm" action="/createnew" method="post">
 
+                <input type="hidden" name="userIdForCreate" id="userIdForCreate">
+
             <!-- <form action="/createnew" method="post"> ✅ Wrap all inputs inside form -->
 
                 <div class="parentDiv">
@@ -193,7 +195,7 @@
                 <form name="improveExisting" action="/improveexisting" method="post">
 
 			<!-- <form action="/improveexisting" method="post"> ✅ Wrap all inputs inside form -->
-
+                <input type="hidden" name="userIdForImprove" id="userIdForImprove">
 			<!-- ✅ Improve Existing Section (Initially Hidden) -->
 			<div class="parentDiv ">
 				<div class="chidDivs_2">
@@ -293,13 +295,6 @@
 
     </div> <!-- maxWidthDiv div end -->
 
-<script>
-        sessionStorage.removeItem("createNewResult");
-        sessionStorage.removeItem("createNewData");
-        sessionStorage.removeItem("improveExistingResult");
-        sessionStorage.removeItem("improveData");
-</script>
-
     <!-- Create New Result Section -->
 <div id="createNewResultSection" class="fullWidthDiv" style="display: none;">
     <div class="maxWidthDiv">
@@ -320,6 +315,9 @@
 
                 sessionStorage.setItem("createNewResult", `{{ content|safe }}`);
                 sessionStorage.setItem("createNewData", `{{ form_data_create|safe }}`);
+
+                console.log("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHhhh")
+
 
                 document.getElementById("createNewResultSection").style.display = "block";
                 document.getElementById("createNewResultSection").scrollIntoView({ behavior: "smooth" });
@@ -349,6 +347,7 @@
                 sessionStorage.setItem("improveExistingResult", `{{ improve_content|safe }}`);
                 sessionStorage.setItem("improveData", `{{ form_data_improve|safe }}`);
 
+                console.log("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHhhh")
                 document.getElementById("improveExistingResultSection").style.display = "block";
                 document.getElementById("improveExistingResultSection").scrollIntoView({ behavior: "smooth" });
 
@@ -365,7 +364,6 @@
     <p>🚀 Supercharging your content with AI... Hang tight!</p>
     <!-- <p>🦸 Powering up your content with AI... Stand by, hero!</p> -->
 </div>
-	
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
 
@@ -851,33 +849,26 @@ function validateLength(input, maxLength) {
    
    // Function to send the request to the API
    async function sendTabRequest(tabname) {
-        try {
-            const response = await fetch('/getdata', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `tabname=${tabname}`
-            });
-
-            const data = await response.json();
-            const cachedData = sessionStorage.getItem(`cachedData_${tabname}`); // Store per tab
-
-            if (!cachedData || JSON.stringify(data) !== cachedData) {
-                // Data is new or updated, update sessionStorage for the specific tab
-                sessionStorage.setItem(`cachedData_${tabname}`, JSON.stringify(data));
-                console.log(`Session storage updated for ${tabname} with new data:`, data);
-            } else {
-                console.log(`No update needed for ${tabname}, session storage already has the latest data.`);
-            }
-
-            return data;  // Return the API response data
-        } catch (error) {
-            console.error('Error:', error);
-            return null;  // Return null in case of an error
-        }
-    }
-
+        let uniqueID = localStorage.getItem("userId");
+        console.log("uniqueID from localStorage:", uniqueID);
+       try {
+           const response = await fetch('/getdata', {
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/x-www-form-urlencoded',
+               },
+               body: `tabname=${tabname}&id=${uniqueID}`
+           });
+           
+           const data = await response.json();
+           // console.log('Response from API:', data);
+           return data;  // Return the API response data
+       } catch (error) {
+           console.error('Error:', error);
+           return null;  // Return null in case of an error
+       }
+   }
+   
    // Add event listeners to each element
    if (createNewTab) {
        createNewTab.addEventListener('click', async () => {
@@ -918,7 +909,6 @@ function validateLength(input, maxLength) {
            tabname = "ImproveOld";
            console.log("Tab name is: " + tabname);  // This logs the current tab name
            const response = await sendTabRequest(tabname); // Wait for the response from the API
-           
            filteredData = response.improved_data
    
            improveExistingResult = filteredData.result
@@ -960,6 +950,48 @@ function validateLength(input, maxLength) {
    </script>    
 
 
+<script>
+    // Function to check and delete the userId after 2 hours of inactivity
+    function checkUserIdExpiry() {
+        const userId = localStorage.getItem("userId");
+        const lastActive = localStorage.getItem("lastActiveTime");
+
+        if (userId && lastActive) {
+            const currentTime = new Date().getTime();
+            const timeDifference = currentTime - lastActive;
+
+            // If more than 2 hours have passed (2 hours = 7200000 milliseconds)
+            if (timeDifference > 7200000) {
+                localStorage.removeItem("userId");
+                localStorage.removeItem("lastActiveTime");
+                console.log("User ID expired and deleted");
+            } else {
+                console.log("User ID is still valid");
+            }
+        }
+    }
+
+    // Check if the user ID exists in localStorage
+    let userId = localStorage.getItem("userId");
+
+    // If not, generate a new unique ID and store it in localStorage
+    if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substr(2, 9);  // Random unique ID
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("lastActiveTime", new Date().getTime()); // Store the current time
+    } else {
+        // Update the last active time to the current time if the userId already exists
+        localStorage.setItem("lastActiveTime", new Date().getTime());
+    }
+
+    // Set the hidden user ID field's value before form submission
+    document.getElementById("userIdForImprove").value = userId;
+    document.getElementById("userIdForCreate").value = userId;
+
+    // Call the expiry check function
+    checkUserIdExpiry();
+</script>
+
+
 </body>
 </html>
-
