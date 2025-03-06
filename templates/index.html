@@ -316,9 +316,6 @@
                 sessionStorage.setItem("createNewResult", `{{ content|safe }}`);
                 sessionStorage.setItem("createNewData", `{{ form_data_create|safe }}`);
 
-                console.log("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHhhh")
-
-
                 document.getElementById("createNewResultSection").style.display = "block";
                 document.getElementById("createNewResultSection").scrollIntoView({ behavior: "smooth" });
             </script>
@@ -347,7 +344,6 @@
                 sessionStorage.setItem("improveExistingResult", `{{ improve_content|safe }}`);
                 sessionStorage.setItem("improveData", `{{ form_data_improve|safe }}`);
 
-                console.log("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHhhh")
                 document.getElementById("improveExistingResultSection").style.display = "block";
                 document.getElementById("improveExistingResultSection").scrollIntoView({ behavior: "smooth" });
 
@@ -364,6 +360,7 @@
     <p>🚀 Supercharging your content with AI... Hang tight!</p>
     <!-- <p>🦸 Powering up your content with AI... Stand by, hero!</p> -->
 </div>
+	
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
 
@@ -868,7 +865,7 @@ function validateLength(input, maxLength) {
            return null;  // Return null in case of an error
        }
    }
-   
+
    // Add event listeners to each element
    if (createNewTab) {
        createNewTab.addEventListener('click', async () => {
@@ -909,6 +906,7 @@ function validateLength(input, maxLength) {
            tabname = "ImproveOld";
            console.log("Tab name is: " + tabname);  // This logs the current tab name
            const response = await sendTabRequest(tabname); // Wait for the response from the API
+           
            filteredData = response.improved_data
    
            improveExistingResult = filteredData.result
@@ -948,7 +946,6 @@ function validateLength(input, maxLength) {
    }
    
    </script>    
-
 
 <script>
     // Function to check and delete the userId after 2 hours of inactivity
@@ -991,7 +988,6 @@ function validateLength(input, maxLength) {
     // Call the expiry check function
     checkUserIdExpiry();
 </script>
-
 
 </body>
 </html>
