@@ -407,7 +407,7 @@
 
                 // Store correct CAPTCHA text in sessionStorage
                 sessionStorage.setItem("captcha_text", data.text);
-                console.log("CAPTCHA Text (Stored for Validation):", data.text);
+                // console.log("CAPTCHA Text (Stored for Validation):", data.text);
             })
             .catch(error => console.error("Error fetching CAPTCHA:", error));
     }
@@ -419,12 +419,12 @@
         let errorMsg = document.getElementById("captchaError"); // Get the <p> tag for errors
 
         if (userInput === correctCaptcha) {
-            console.log("✅ CAPTCHA Matched!");
+            // console.log("✅ CAPTCHA Matched!");
             errorMsg.textContent = ""; // Clear the error message if correct
             errorMsg.style.display = "none"; // Hide the error message
             return true;
         } else {
-            console.log("❌ CAPTCHA Incorrect! Try Again.");
+            // console.log("❌ CAPTCHA Incorrect! Try Again.");
             errorMsg.textContent = "Incorrect CAPTCHA. Please try again."; // Set error message
             errorMsg.style.color = "red"; // Make the error text red
             errorMsg.style.display = "block"; // Ensure the error is visible
@@ -442,7 +442,7 @@
 
                 // Store correct CAPTCHA text in sessionStorage
                 sessionStorage.setItem("captcha_improve", data.text);
-                console.log("Improved CAPTCHA Text (Stored for Validation):", data.text);
+                // console.log("Improved CAPTCHA Text (Stored for Validation):", data.text);
             })
             .catch(error => console.error("Error fetching Improved CAPTCHA:", error));
     }
@@ -454,12 +454,12 @@
         let errorMsg = document.getElementById("captchaImproveError")
 
         if (userInput === correctCaptcha) {
-            console.log("✅ Improved CAPTCHA Matched!");
+            // console.log("✅ Improved CAPTCHA Matched!");
             errorMsg.textContent = ""; // Clear the error message if correct
             errorMsg.style.display = "none"; // Hide the error message
             return true;
         } else {
-            console.log("❌ Improved CAPTCHA Incorrect! Try Again.");
+            // console.log("❌ Improved CAPTCHA Incorrect! Try Again.");
             errorMsg.textContent = "Incorrect CAPTCHA. Please try again."; // Set error message
             errorMsg.style.color = "red"; // Make the error text red
             errorMsg.style.display = "block"; // Ensure the error is visible
@@ -524,7 +524,7 @@
 
         if (createNewTab && improveOldTab) {
             createNewTab.addEventListener("click", function () {
-                console.log("For CreateNew")
+                // console.log("For CreateNew")
                 loadCaptcha(); // Load new CAPTCHA for Create New tab
             });
 
@@ -645,8 +645,8 @@ document.getElementById("improveForm").addEventListener("click", function(event)
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let formData = JSON.parse('{{ form_data | safe }}')
-        console.log("dfghjkl",formData)
-        console.log("dfghjkl",formData.category)
+        // console.log("dfghjkl",formData)
+        // console.log("dfghjkl",formData.category)
         
         let formDataCN = JSON.parse('{{ form_data | safe }}')
         // console.log("formDataCN",formDataCN)
@@ -677,8 +677,8 @@ document.getElementById("improveForm").addEventListener("click", function(event)
         let existing_content = `{{ existing_content|safe }}`
          
 
-        console.log("....",formData);  // Log the data to check
-        console.log(existing_content)
+        // console.log("....",formData);  // Log the data to check
+        // console.log(existing_content)
         // Check if formData exists in localStorage before attempting to populate the fields
         if (formData) {
 
@@ -714,7 +714,7 @@ document.getElementById("improveForm").addEventListener("click", function(event)
             activeIndex = parseInt(activeIndex);
         }
 
-        console.log("Loaded active tab index:", activeIndex);
+        // console.log("Loaded active tab index:", activeIndex);
 
         // Apply active tab state
         function setActiveTab(index) {
@@ -735,8 +735,8 @@ document.getElementById("improveForm").addEventListener("click", function(event)
 
                 let createNewResult = sessionStorage.getItem("createNewResult");
                 let createNewData = JSON.parse(sessionStorage.getItem("createNewData"));
-                console.log("aaaaaaaaaaaaaaaaaa",createNewData)
-                console.log("aaaaaaaaaaaaaaaaaa",createNewResult)
+                // console.log("aaaaaaaaaaaaaaaaaa",createNewData)
+                // console.log("aaaaaaaaaaaaaaaaaa",createNewResult)
                 if (createNewResult) {
                     $(".createNewResult").html(createNewResult); 
                 }
@@ -760,8 +760,8 @@ document.getElementById("improveForm").addEventListener("click", function(event)
 
                 let improveExistingResult = sessionStorage.getItem("improveExistingResult");
                 let improveData = JSON.parse(sessionStorage.getItem("improveData"));
-                console.log("aaaaaaaaaaaaaaaaaa",improveData)
-                console.log("aaaaaaaaaaaaaaaaaa",improveExistingResult)
+                // console.log("aaaaaaaaaaaaaaaaaa",improveData)
+                // console.log("aaaaaaaaaaaaaaaaaa",improveExistingResult)
                 if (improveExistingResult) {
                     $(".improveExistingResult").html(improveExistingResult);
                 }
@@ -783,7 +783,7 @@ document.getElementById("improveForm").addEventListener("click", function(event)
         }
 
         function switchTab(index) {
-            console.log("Switching to tab index:", index);
+            // console.log("Switching to tab index:", index);
             setActiveTab(index);
 
             // Handle chatbot result transition
@@ -847,7 +847,7 @@ function validateLength(input, maxLength) {
    // Function to send the request to the API
    async function sendTabRequest(tabname) {
         let uniqueID = localStorage.getItem("userId");
-        console.log("uniqueID from localStorage:", uniqueID);
+        // console.log("uniqueID from localStorage:", uniqueID);
        try {
            const response = await fetch('/getdata', {
                method: 'POST',
@@ -870,14 +870,14 @@ function validateLength(input, maxLength) {
    if (createNewTab) {
        createNewTab.addEventListener('click', async () => {
            tabname = "CreateNew";
-           console.log("Tab name is: " + tabname);  // This logs the current tab name
+           // console.log("Tab name is: " + tabname);  // This logs the current tab name
            const response = await sendTabRequest(tabname); // Wait for the response from the API
            filteredData = response.generated_data
    
            createNewResult = filteredData.result
-           console.log("***",createNewResult);
+           // console.log("***",createNewResult);
            createNewData = filteredData
-           console.log("***",createNewData);
+           // console.log("***",createNewData);
 
 
            $("#createNewResultSection").show();
@@ -904,21 +904,21 @@ function validateLength(input, maxLength) {
    if (improveOldTab) {
        improveOldTab.addEventListener('click', async () => {
            tabname = "ImproveOld";
-           console.log("Tab name is: " + tabname);  // This logs the current tab name
+           // console.log("Tab name is: " + tabname);  // This logs the current tab name
            const response = await sendTabRequest(tabname); // Wait for the response from the API
            
            filteredData = response.improved_data
    
            improveExistingResult = filteredData.result
-           console.log("***",improveExistingResult);
+           // console.log("***",improveExistingResult);
            improveData = filteredData
-           console.log("***",improveData);
+           // console.log("***",improveData);
            let existing_content = `{{ existing_content|safe }}`
 
            $("#createNewResultSection").hide();
            $("#improveExistingResultSection").show();
 
-           console.log("**********%%%%%%%%%%%%%**********",improveData.result)
+           // console.log("**********%%%%%%%%%%%%%**********",improveData.result)
            if (improveExistingResult) {
                 // $(".summeryDiv p").html(improveExistingResult);
                 $(".summeryDiv p").empty().html(improveExistingResult);
@@ -961,9 +961,9 @@ function validateLength(input, maxLength) {
             if (timeDifference > 7200000) {
                 localStorage.removeItem("userId");
                 localStorage.removeItem("lastActiveTime");
-                console.log("User ID expired and deleted");
+                // console.log("User ID expired and deleted");
             } else {
-                console.log("User ID is still valid");
+                // console.log("User ID is still valid");
             }
         }
     }
