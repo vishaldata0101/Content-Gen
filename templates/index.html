@@ -360,7 +360,26 @@
     <p>🚀 Supercharging your content with AI... Hang tight!</p>
     <!-- <p>🦸 Powering up your content with AI... Stand by, hero!</p> -->
 </div>
-	
+
+<script>
+    function setLocalStorageItem(key, value) {
+        // console.log(`Checking ${key}:`, value);
+        if (value && value !== "null" && value !== "undefined") {
+            localStorage.setItem(key, value);
+            // console.log(`${key} set successfully.`);
+        } else {
+            // console.log(`${key} not updated (existing value preserved).`);
+        }
+    }
+
+    setLocalStorageItem("createNewResult", `{{ create_content|safe }}`);
+    setLocalStorageItem("createNewData", `{{ form_data_create|safe }}`);
+    setLocalStorageItem("improveExistingResult", `{{ improve_content|safe }}`);
+    setLocalStorageItem("improveData", `{{ form_data_improve|safe }}`);
+    setLocalStorageItem("existingContent", `{{ existing_content|safe }}`);
+
+</script>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
 
@@ -518,7 +537,8 @@
 
         setupLiveValidation();
         loadCaptcha();
-        loadCaptchaImprove()
+        loadCaptchaImprove();
+        
         const createNewTab = document.evaluate('/html/body/div/div[1]/ul[1]/li[1]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
         const improveOldTab = document.evaluate('/html/body/div/div[1]/ul[1]/li[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
@@ -628,12 +648,6 @@ document.getElementById("improveForm").addEventListener("click", function(event)
 
 </script>
 
-<script>
-
-        sessionStorage.setItem("createNewResult1", `{{ content|safe }}`);
-
-</script>
-                    </script>
 <script>
     $(document).ready(function () {
     $(".dataList").on("focus", function () {
@@ -843,42 +857,17 @@ function validateLength(input, maxLength) {
    // Select the elements by their XPath
    const createNewTab = document.evaluate('/html/body/div/div[1]/ul[1]/li[1]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
    const improveOldTab = document.evaluate('/html/body/div/div[1]/ul[1]/li[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-   
-   // Function to send the request to the API
-   async function sendTabRequest(tabname) {
-        let uniqueID = localStorage.getItem("userId");
-        // console.log("uniqueID from localStorage:", uniqueID);
-       try {
-           const response = await fetch('/getdata', {
-               method: 'POST',
-               headers: {
-                   'Content-Type': 'application/x-www-form-urlencoded',
-               },
-               body: `tabname=${tabname}&id=${uniqueID}`
-           });
-           
-           const data = await response.json();
-           // console.log('Response from API:', data);
-           return data;  // Return the API response data
-       } catch (error) {
-           console.error('Error:', error);
-           return null;  // Return null in case of an error
-       }
-   }
 
    // Add event listeners to each element
    if (createNewTab) {
        createNewTab.addEventListener('click', async () => {
            tabname = "CreateNew";
-           // console.log("Tab name is: " + tabname);  // This logs the current tab name
-           const response = await sendTabRequest(tabname); // Wait for the response from the API
-           filteredData = response.generated_data
+        //    console.log("Tab name is: " + tabname);  // This logs the current tab name
    
-           createNewResult = filteredData.result
-           // console.log("***",createNewResult);
-           createNewData = filteredData
-           // console.log("***",createNewData);
-
+           createNewResult = localStorage.getItem("createNewResult")
+        //    console.log("%%%%%%%%%%%%%%%",createNewResult);
+           createNewData = JSON.parse(localStorage.getItem("createNewData"));
+        //    console.log("%%%%%%%%%%%%%%%",createNewData);
 
            $("#createNewResultSection").show();
            $("#improveExistingResultSection").hide();
@@ -904,21 +893,23 @@ function validateLength(input, maxLength) {
    if (improveOldTab) {
        improveOldTab.addEventListener('click', async () => {
            tabname = "ImproveOld";
-           // console.log("Tab name is: " + tabname);  // This logs the current tab name
-           const response = await sendTabRequest(tabname); // Wait for the response from the API
-           
-           filteredData = response.improved_data
+        //    console.log("Tab name is: " + tabname);  // This logs the current tab name
    
-           improveExistingResult = filteredData.result
-           // console.log("***",improveExistingResult);
-           improveData = filteredData
-           // console.log("***",improveData);
-           let existing_content = `{{ existing_content|safe }}`
+           improveExistingResult = localStorage.getItem("improveExistingResult")
+           improveData = JSON.parse(localStorage.getItem("improveData"));
+           createNewResult = localStorage.getItem("createNewResult");
+           createNewData = JSON.parse(localStorage.getItem("createNewData"));
+           existingContent = localStorage.getItem("existingContent")
+        //    console.log("Old data_______________",createNewData)
+        //    console.log("Old data_______________",existingContent)
+
+            if (!improveData) {
+                improveData = createNewData; // Use createResult as a fallback
+            } 
 
            $("#createNewResultSection").hide();
            $("#improveExistingResultSection").show();
 
-           // console.log("**********%%%%%%%%%%%%%**********",improveData.result)
            if (improveExistingResult) {
                 // $(".summeryDiv p").html(improveExistingResult);
                 $(".summeryDiv p").empty().html(improveExistingResult);
@@ -930,13 +921,16 @@ function validateLength(input, maxLength) {
                 $("select[name='medium']").val(improveData.medium || "");
                 $("input[name='specific_input']").val(improveData.specific_input || "");
 
+
+                // console.log("Setting existing content in textarea:", existingContent);
+                $("textarea[name='existing_content']").val(createNewResult || existingContent);
+
+
                 if (improveData.ab_testing !== undefined) {
                     $("input[name='ab_testing']").prop("checked", improveData.ab_testing);
                 }
 
-                if (improveData.existing_content) {
-                    $("textarea[name='existing_content']").val(improveData.existing_content);
-                } 
+
                 // if (improveData.existing_content) {
                 //     $("textarea[name='existing_content']").val(improveData.original_content);
                 // } 
@@ -948,45 +942,37 @@ function validateLength(input, maxLength) {
    </script>    
 
 <script>
-    // Function to check and delete the userId after 2 hours of inactivity
-    function checkUserIdExpiry() {
-        const userId = localStorage.getItem("userId");
+    function checkStorageExpiry() {
         const lastActive = localStorage.getItem("lastActiveTime");
 
-        if (userId && lastActive) {
+        if (lastActive) {
             const currentTime = new Date().getTime();
             const timeDifference = currentTime - lastActive;
 
-            // If more than 2 hours have passed (2 hours = 7200000 milliseconds)
+            // If more than 2 hours (7200000 milliseconds) have passed, remove all variables
             if (timeDifference > 7200000) {
-                localStorage.removeItem("userId");
-                localStorage.removeItem("lastActiveTime");
-                // console.log("User ID expired and deleted");
-            } else {
-                // console.log("User ID is still valid");
+                localStorage.removeItem("createNewResult");
+                localStorage.removeItem("createNewData");
+                localStorage.removeItem("improveExistingResult");
+                localStorage.removeItem("improveData");
+                localStorage.removeItem("existingContent");
+
+                // console.log("LocalStorage data expired and deleted");
             }
         }
     }
 
-    // Check if the user ID exists in localStorage
-    let userId = localStorage.getItem("userId");
-
-    // If not, generate a new unique ID and store it in localStorage
-    if (!userId) {
-        userId = 'user_' + Math.random().toString(36).substr(2, 9);  // Random unique ID
-        localStorage.setItem("userId", userId);
-        localStorage.setItem("lastActiveTime", new Date().getTime()); // Store the current time
-    } else {
-        // Update the last active time to the current time if the userId already exists
+    function updateLastActiveTime() {
         localStorage.setItem("lastActiveTime", new Date().getTime());
     }
 
-    // Set the hidden user ID field's value before form submission
-    document.getElementById("userIdForImprove").value = userId;
-    document.getElementById("userIdForCreate").value = userId;
+    // Listen for user activity (mouse movement, key press, scroll) to update last active time
+    document.addEventListener("mousemove", updateLastActiveTime);
+    document.addEventListener("keydown", updateLastActiveTime);
+    document.addEventListener("scroll", updateLastActiveTime);
 
-    // Call the expiry check function
-    checkUserIdExpiry();
+    // Check expiry every minute
+    setInterval(checkStorageExpiry, 60000);
 </script>
 
 </body>
