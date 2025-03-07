@@ -1,5 +1,5 @@
 from prompt import create_marketing_content, improve_marketing_content
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, session
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
 from PIL import Image, ImageDraw, ImageFont
 import random
 import io
@@ -13,34 +13,6 @@ from datetime import datetime, timedelta
 # Initialize the flask app
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Generates a random secret key
-
-last_website_activity = datetime.now()
-
-# Time limit for clearing sessions (2 hours)
-SESSION_TIMEOUT = timedelta(hours=2)
-
-def clear_all_sessions():
-    """Clears all sessions after 2 hours of inactivity."""
-    # This will clear Flask sessions if inactive for more than 2 hours
-    session.clear()
-    print("All sessions cleared due to inactivity.")
-
-def check_website_inactivity():
-    """Check if the website has been inactive for more than 2 hours."""
-    global last_website_activity
-    if datetime.now() - last_website_activity > SESSION_TIMEOUT:
-        clear_all_sessions()  # Clear all sessions after timeout
-
-@app.before_request
-def update_last_activity():
-    """Update last activity time and check for website inactivity."""
-    global last_website_activity
-    # Check if website has been inactive for more than 2 hours
-    check_website_inactivity()
-    
-    # Update last activity timestamp to current time
-    last_website_activity = datetime.now()
-
 
 @app.route("/", methods=["GET"])
 def index():
@@ -60,7 +32,6 @@ def generate_content():
     tone = request.form.get("tone", None)
     specific_input = request.form.get("specific_input", None)
     ab_testing = request.form.get("ab_testing", "false") == "true"
-    id =  request.form.get("userIdForCreate")
 
     # Validate required fields
     if not all([category, brand, objective, medium]):
@@ -82,20 +53,6 @@ def generate_content():
     "specific_input": specific_input,
     "ab_testing": ab_testing
     }
-    print("GGGGGGGGGGGGGGGGGGGGGGGG",id)
-
-    session[f'generated_data_{id}'] = {
-        "category": request.form.get("category"),
-        "brand": request.form.get("brand"),
-        "objective": request.form.get("objective"),
-        "medium": request.form.get("medium"),
-        "cta_button": request.form.get("cta_button"),
-        "offer": request.form.get("offer"),
-        "tone": request.form.get("tone"),
-        "specific_input": request.form.get("specific_input"),
-        "ab_testing": request.form.get("ab_testing", "false") == "true",
-        "result": result
-    }
 
     return render_template("index.html", content=result, create_content=result, form_data_create=json.dumps(form_data or {}),
                           form_data=json.dumps(form_data or {}))
@@ -112,7 +69,6 @@ def improve_content():
     medium = request.form.get("medium")
     specific_input = request.form.get("specific_input", None)
     ab_testing = request.form.get("ab_testing", "false") == "true"
-    id =  request.form.get("userIdForImprove")
 
     # Validate required fields
     if not all([existing_content, category, brand, medium]):
@@ -137,51 +93,11 @@ def improve_content():
     "specific_input": specific_input,
     "ab_testing": ab_testing
     }
-    print("GGGGGGGGGGGGGGGGGGGGGGGG",id)
-    session[f'improved_data_{id}'] = {
-        "existing_content": request.form.get("existing_content"),
-        "category": request.form.get("category"),
-        "brand": request.form.get("brand"),
-        "medium": request.form.get("medium"),
-        "specific_input": request.form.get("specific_input"),
-        "ab_testing": request.form.get("ab_testing", "false") == "true",
-        "result": results
-    }
-    
+
     return render_template("index.html", content=results, improve_content=results, 
                           form_data=json.dumps(data_dict, ensure_ascii=False),
                           form_data_improve=json.dumps(data_dict_i, ensure_ascii=False),
                           existing_content=existing_content)
-
-@app.route("/getdata", methods=["POST", "GET"])
-def get_content():
-    if request.method == "POST":
-        requested_data = request.form.get("tabname", "")
-        id = request.form.get("id", "")
-        print("PPPPPPPPPPPPP",id)
-
-        if requested_data == "CreateNew":
-            return jsonify({"generated_data": session.get(f'generated_data_{id}', {})}), 200
-        elif requested_data == "ImproveOld":
-            generated_data = session.get(f'generated_data_{id}', {})
-            improved_data = session.get(f'improved_data_{id}', {})
-            if not improved_data:
-                print("No improved data found, using generated data instead.")
-                improved_data = generated_data.copy()
-            else:
-                # Check if other data is available and compare key-value pairs
-                for key, value in generated_data.items():
-
-                    if key in improved_data and improved_data[key] == value:
-                        continue  # Keep the improved data
-                    else:
-                        if key != "result":
-                            improved_data[key] = generated_data[key]
-
-            # Now, improved_data contains the best available information
-
-            improved_data['existing_content'] = generated_data['result']
-            return jsonify({"improved_data": improved_data}), 200
 
 # Function to load the font
 def get_font():
@@ -197,9 +113,9 @@ def generate_captcha_text(length=5):
     characters = string.ascii_letters + string.digits  # Uppercase, lowercase, and numbers
     return "".join(random.choices(characters, k=length))
 
-
 def create_captcha_image(text):
     """Create a CAPTCHA image from the given text."""
+    
     font = get_font()
     image = Image.new("RGB", (1, 1)) 
     draw = ImageDraw.Draw(image)
@@ -209,7 +125,7 @@ def create_captcha_image(text):
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
 
-    # Add padding to avoid cutting
+        # Add padding to avoid cutting
     width = text_width + 40  # Extra space to prevent cutoff
     height = max(60, text_height + 20)  # Ensure minimum height
 
@@ -221,6 +137,8 @@ def create_captcha_image(text):
     y = (height - text_height) // 2
     draw.text((x, y), text, fill=(0, 0, 0), font=font)
 
+
+
     # Add some noise/lines to make it harder for bots
     for i in range(5):
         x1 = random.randint(0, width)
@@ -228,6 +146,7 @@ def create_captcha_image(text):
         x2 = random.randint(0, width)
         y2 = random.randint(0, height)
         draw.line([(x1, y1), (x2, y2)], fill=(128, 128, 128), width=2)
+
 
     # Save image to a byte stream
     img_io = io.BytesIO()
